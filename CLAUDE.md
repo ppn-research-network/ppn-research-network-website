@@ -55,3 +55,8 @@ Tokens are defined once in `src/styles/global.css` (`@theme`); use the Tailwind 
 - `npm run dev`: run locally at http://localhost:4321/ppn-research-network-website/
 - `npm run build`: build the static site into `dist/`
 - `npm run check`: type-check
+- `npm run db:push`: apply new migrations to the linked Supabase project (Sydney, ref `tjhpayiavitmcbkegnqq`; ignore the stray Singapore project)
+- `npm run test:security` / `npm run test:security:cleanup`: security tests as an anonymous visitor, then remove their pending test rows
+
+## Database
+See `supabase/README.md`. Pick-lists (study design, data types, disciplines, etc.) live in the `vocab_terms` table so admins can change them in the dashboard; forms and filters must load them from there, never hard-code them. Listings store the `code`; show the `label`. Access levels, states and consent answers are fixed check constraints.

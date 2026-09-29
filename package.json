@@ -10,12 +10,16 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "check": "astro check"
+    "check": "astro check",
+    "db:push": "supabase db push",
+    "test:security": "node --env-file=.env --test tests/security.test.mjs",
+    "test:security:cleanup": "supabase db query --linked -f supabase/cleanup-security-tests.sql"
   },
   "dependencies": {
     "@astrojs/react": "^7.0.0",
     "@fontsource-variable/ibm-plex-sans": "^5.3.0",
     "@fontsource-variable/newsreader": "^5.3.0",
+    "@supabase/supabase-js": "^2.117.2",
     "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
