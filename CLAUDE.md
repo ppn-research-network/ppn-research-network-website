@@ -58,5 +58,13 @@ Tokens are defined once in `src/styles/global.css` (`@theme`); use the Tailwind 
 - `npm run db:push`: apply new migrations to the linked Supabase project (Sydney, ref `tjhpayiavitmcbkegnqq`; ignore the stray Singapore project)
 - `npm run test:security` / `npm run test:security:cleanup`: security tests as an anonymous visitor, then remove their pending test rows
 
+## Site structure
+- `site.config.mjs` also holds CONTACT_EMAIL, REVIEW_TIME and INSTITUTION_COUNT; use them rather than repeating the wording.
+- Pages use `SiteLayout` (header + footer). Reusable styles: `btn-primary`, `btn-secondary`, `btn-danger`, `card`, `eyebrow`, `badge`, `tag`, `input`, `field-label`, `choice`, `prose-page` (in `global.css`).
+- Forms are React islands in `src/components/forms/`, built from `Fields.tsx` (labels, hints, inline errors, error summary, honeypot, consent box, privacy notice). Validate in the browser to match the database constraints.
+- Detail page URLs: `/data/dataset/?slug=…` and `/skills/profile/?slug=…` (static pages that load the listing at runtime).
+- Draft wording the owner must review is marked `<mark>[CHECK]</mark>`. List and remove these before launch (Phase 6).
+- Admin names are not published; the site refers to "the leadership committee". Do not name the University of Newcastle or other institutions.
+
 ## Database
 See `supabase/README.md`. Pick-lists (study design, data types, disciplines, etc.) live in the `vocab_terms` table so admins can change them in the dashboard; forms and filters must load them from there, never hard-code them. Listings store the `code`; show the `label`. Access levels, states and consent answers are fixed check constraints.

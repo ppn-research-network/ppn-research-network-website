@@ -11,6 +11,7 @@ export default defineConfig({
   site: SITE_URL,
   base: BASE_PATH,
   output: 'static',
+  devToolbar: { enabled: false },
   trailingSlash: 'ignore',
   integrations: [react()],
 

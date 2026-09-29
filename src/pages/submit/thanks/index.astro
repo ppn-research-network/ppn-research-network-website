@@ -1,0 +1,50 @@
+---
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+import Icon from '../../../components/Icon.astro';
+import { withBase } from '../../../lib/url';
+import { CONTACT_EMAIL, REVIEW_TIME } from '../../../../site.config.mjs';
+---
+
+<SiteLayout title="Thank you">
+  <div class="mx-auto max-w-2xl px-5 py-16 md:py-24">
+    <div class="card p-8 sm:p-10">
+      <span class="flex h-12 w-12 items-center justify-center rounded-full bg-open text-green">
+        <Icon name="check" class="h-6 w-6" />
+      </span>
+      <h1 class="mt-6 text-4xl">Thank you</h1>
+      <p class="mt-4 text-lg text-[#33403a]" data-thanks-lead>We've received your listing.</p>
+
+      <h2 class="mt-8 font-sans text-base font-semibold">What happens next</h2>
+      <ol class="mt-3 list-decimal space-y-2 pl-5 text-[#33403a]">
+        <li>We'll email you to confirm we received it.</li>
+        <li>An admin from the leadership committee will review it within {REVIEW_TIME}, and may email you with a question.</li>
+        <li>Once it's approved, it appears in the directory and we'll let you know.</li>
+      </ol>
+
+      <p class="mt-6 text-sm text-muted">
+        Need to change something you sent? Email the admins at {CONTACT_EMAIL}.
+      </p>
+
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href={withBase('/')} class="btn-primary">Back to the home page</a>
+        <a href={withBase('/submit/')} class="btn-secondary" data-thanks-again>Add another listing</a>
+      </div>
+    </div>
+  </div>
+</SiteLayout>
+
+<script>
+  import { withBase } from '../../../lib/url';
+
+  // Tailor the wording to what was submitted (?type=dataset or ?type=profile).
+  const type = new URLSearchParams(window.location.search).get('type');
+  const lead = document.querySelector('[data-thanks-lead]');
+  const again = document.querySelector<HTMLAnchorElement>('[data-thanks-again]');
+  if (type === 'profile') {
+    if (lead) lead.textContent = "We've received your skills profile.";
+    if (again) again.href = withBase('/submit/');
+    if (again) again.textContent = 'Submit a dataset too';
+  } else if (type === 'dataset') {
+    if (lead) lead.textContent = "We've received your dataset listing.";
+  }
+</script>

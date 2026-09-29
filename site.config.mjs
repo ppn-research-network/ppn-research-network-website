@@ -1,5 +1,5 @@
 // @ts-check
-// The one place the site's name and web address live.
+// The one place the site's name, web address and key wording live.
 // Moving to a custom domain later (Phase 7) means changing SITE_URL and BASE_PATH here, nothing else.
 
 export const NETWORK_NAME = 'Precision & Personalised Nutrition Research Network';
@@ -9,3 +9,12 @@ export const SITE_URL = 'https://ppn-research-network.github.io';
 
 // The folder the site lives in on that address. Use '/' for a custom domain.
 export const BASE_PATH = '/ppn-research-network-website';
+
+// Public contact address for the admins (shown as text, never a form field value).
+export const CONTACT_EMAIL = 'ppn.researchnetwork@gmail.com';
+
+// How quickly the leadership committee promises to review a submission. [CHECK]
+export const REVIEW_TIME = '10 working days';
+
+// Shown on the home and About pages. [CHECK] keep this current.
+export const INSTITUTION_COUNT = 'more than 10';

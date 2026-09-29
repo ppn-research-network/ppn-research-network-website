@@ -1,0 +1,8 @@
+---
+import ComingSoon from '../../../components/ComingSoon.astro';
+import { withBase } from '../../../lib/url';
+---
+
+<ComingSoon title="Profile" intro="A researcher's full skills profile, with a form to get in touch." current="skills">
+  <a href={withBase("/skills/")} class="mt-5 inline-block text-sm">Back to the skills directory</a>
+</ComingSoon>

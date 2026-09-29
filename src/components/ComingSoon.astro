@@ -1,0 +1,38 @@
+---
+// Temporary page for sections built in later phases.
+import SiteLayout from '../layouts/SiteLayout.astro';
+import Icon from './Icon.astro';
+import type { NavKey } from '../lib/nav';
+
+interface Props {
+  title: string;
+  intro: string;
+  current?: NavKey;
+  locked?: boolean;
+}
+const { title, intro, current, locked } = Astro.props;
+---
+
+<SiteLayout title={title} current={current}>
+  <div class="mx-auto max-w-6xl px-5 py-12 md:py-16">
+    {locked && (
+      <span class="badge bg-controlled text-controlled-ink">
+        <Icon name="lock" class="h-3.5 w-3.5" /> Members only
+      </span>
+    )}
+    <h1 class:list={['text-4xl sm:text-5xl', locked && 'mt-3']}>{title}</h1>
+    <p class="mt-4 max-w-2xl text-lg text-[#33403a]">{intro}</p>
+    <div class="card mt-10 max-w-2xl p-6 sm:p-8">
+      <p class="font-semibold">Coming soon</p>
+      <p class="mt-2 text-sm text-muted" data-search-note>This part of the site is being built.</p>
+      <slot />
+    </div>
+  </div>
+</SiteLayout>
+
+<script>
+  // If someone arrived from the home page search, acknowledge what they searched for.
+  const q = new URLSearchParams(window.location.search).get('q');
+  const note = document.querySelector('[data-search-note]');
+  if (q && note) note.textContent = `Search for "${q}" will work here once the directory opens.`;
+</script>

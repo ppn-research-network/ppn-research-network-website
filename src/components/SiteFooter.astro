@@ -1,0 +1,34 @@
+---
+import { NETWORK_NAME } from '../../site.config.mjs';
+import { withBase } from '../lib/url';
+
+interface Props {
+  note?: string;
+}
+const {
+  note = 'Listings describe data held by their custodians. The network does not hold, host or grant access to data, and a listing is not an endorsement.',
+} = Astro.props;
+
+const links = [
+  { href: '/about/', label: 'About' },
+  { href: '/privacy/', label: 'Privacy and terms' },
+  { href: '/contact/', label: 'Contact the admins' },
+  { href: '/admin/', label: 'Admin login' },
+];
+---
+
+<footer class="mt-auto bg-footer text-white/75">
+  <div class="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-10 md:flex-row md:items-start md:justify-between">
+    <div class="max-w-xl">
+      <p class="font-serif text-lg text-white">{NETWORK_NAME}</p>
+      <p class="mt-2 text-sm leading-relaxed">{note}</p>
+    </div>
+    <nav aria-label="Footer">
+      <ul class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+        {links.map((link) => (
+          <li><a href={withBase(link.href)} class="text-white/85 underline underline-offset-2 hover:text-white">{link.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</footer>

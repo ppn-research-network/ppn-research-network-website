@@ -1,0 +1,87 @@
+---
+// Page frame for "Add a listing": heading, the two tabs, and the sidebar.
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { withBase } from '../lib/url';
+import { REVIEW_TIME } from '../../site.config.mjs';
+
+interface Props {
+  tab: 'dataset' | 'profile';
+}
+const { tab } = Astro.props;
+
+const tabs = [
+  { key: 'dataset', href: '/submit/', label: 'A dataset' },
+  { key: 'profile', href: '/submit/profile/', label: 'My skills profile' },
+];
+
+const next = [
+  'We email you to confirm we received it.',
+  `An admin checks the listing within ${REVIEW_TIME} and may ask a question.`,
+  'Once approved it appears in the directory, and we let you know.',
+];
+---
+
+<SiteLayout
+  title={tab === 'dataset' ? 'Submit a dataset' : 'Join the skills directory'}
+  current="submit"
+>
+  <div class="mx-auto max-w-6xl px-5 py-12 md:py-16">
+    <h1 class="text-4xl sm:text-5xl">Add a listing</h1>
+    <p class="mt-4 max-w-2xl text-lg text-[#33403a]">
+      Describe a dataset you can share, or add yourself to the skills directory. An admin reviews every listing before it
+      goes live.
+    </p>
+
+    <nav aria-label="Listing type" class="mt-8 inline-flex rounded-xl bg-band p-1">
+      {tabs.map((t) => (
+        <a
+          href={withBase(t.href)}
+          aria-current={tab === t.key ? 'page' : undefined}
+          class:list={[
+            'rounded-lg px-4 py-2.5 text-sm font-semibold no-underline',
+            tab === t.key ? 'bg-card text-ink shadow-sm' : 'text-muted hover:text-ink',
+          ]}
+        >
+          {t.label}
+        </a>
+      ))}
+    </nav>
+
+    <div class="mt-8 grid gap-8 lg:grid-cols-[1fr_20rem] lg:items-start">
+      <div class="card p-6 sm:p-8">
+        <slot />
+      </div>
+
+      <aside class="space-y-4 lg:sticky lg:top-6" aria-label="About submitting">
+        <div class="rounded-xl bg-band p-6">
+          <h2 class="text-xl">What happens next</h2>
+          <ol class="mt-4 space-y-3">
+            {next.map((text, i) => (
+              <li class="flex gap-3 text-sm">
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green text-xs font-semibold text-white">{i + 1}</span>
+                <span>{text}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+        {tab === 'dataset' ? (
+          <div class="card p-5">
+            <p class="text-sm font-semibold">Describe it, don't upload it</p>
+            <p class="mt-2 text-sm text-muted">
+              The network lists information about datasets only. Never attach data files or anything that could identify a
+              participant.
+            </p>
+          </div>
+        ) : (
+          <div class="card p-5">
+            <p class="text-sm font-semibold">Your email stays private</p>
+            <p class="mt-2 text-sm text-muted">
+              People contact you through a form on your profile. We pass the message on, and you decide whether to reply.
+            </p>
+          </div>
+        )}
+        <a href={withBase('/contact/')} class="block text-sm">Questions? Contact the admins</a>
+      </aside>
+    </div>
+  </div>
+</SiteLayout>

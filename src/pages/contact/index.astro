@@ -1,0 +1,49 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import { withBase } from '../../lib/url';
+import { CONTACT_EMAIL, REVIEW_TIME } from '../../../site.config.mjs';
+---
+
+<SiteLayout title="Contact the admins">
+  <div class="mx-auto max-w-2xl px-5 py-12 md:py-16">
+    <h1 class="text-4xl sm:text-5xl">Contact the admins</h1>
+    <p class="mt-4 text-lg text-[#33403a]">
+      The site is run by the network's leadership committee. Email us with questions about listings, membership or the
+      network.
+    </p>
+
+    <div class="card mt-8 p-6 sm:p-8">
+      <p class="text-sm font-semibold text-muted">Email</p>
+      <p class="mt-1 font-serif text-2xl break-all" data-email>{CONTACT_EMAIL}</p>
+      <div class="mt-4 flex flex-wrap items-center gap-3">
+        <button type="button" class="btn-secondary" data-copy>Copy email address</button>
+        <a href={`mailto:${CONTACT_EMAIL}`} class="text-sm">Open in your email app</a>
+        <span class="text-sm text-green" role="status" data-copied></span>
+      </div>
+      <p class="mt-6 text-sm text-muted">We aim to reply within {REVIEW_TIME}.</p>
+    </div>
+
+    <div class="mt-10 space-y-3 text-[#33403a]">
+      <h2 class="text-2xl">Looking for someone else?</h2>
+      <p>
+        To contact a dataset custodian or a researcher, use the form on their listing in the
+        <a href={withBase('/data/')}>data directory</a> or <a href={withBase('/skills/')}>skills directory</a>. We pass
+        your message on, and they reply to you directly.
+      </p>
+    </div>
+  </div>
+</SiteLayout>
+
+<script>
+  const button = document.querySelector<HTMLButtonElement>('[data-copy]');
+  const email = document.querySelector('[data-email]')?.textContent?.trim() ?? '';
+  const status = document.querySelector('[data-copied]');
+  button?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(email);
+      if (status) status.textContent = 'Copied';
+    } catch {
+      if (status) status.textContent = 'Select the address above to copy it';
+    }
+  });
+</script>

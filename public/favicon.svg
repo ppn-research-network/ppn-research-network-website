@@ -2,5 +2,5 @@
     <path d="M12 8h8M16 8v9" stroke="#1f4a3f" stroke-width="2.2" stroke-linecap="round" />
     <circle cx="8" cy="8" r="4" stroke="#1f4a3f" stroke-width="2.2" />
     <circle cx="24" cy="8" r="4" stroke="#1f4a3f" stroke-width="2.2" />
-    <circle cx="16" cy="23" r="6" fill="#b4532a" />
+    <circle cx="16" cy="23" r="6" fill="#a64a24" />
 </svg>

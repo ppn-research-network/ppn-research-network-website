@@ -1,0 +1,8 @@
+---
+import ComingSoon from '../../components/ComingSoon.astro';
+import { withBase } from '../../lib/url';
+---
+
+<ComingSoon title="Data directory" intro="Descriptions of Australian nutrition datasets that custodians are willing to share. Each listing says how to request access; the data stays with the custodian." current="data">
+  <a href={withBase("/submit/")} class="btn-secondary mt-5">Submit a dataset</a>
+</ComingSoon>

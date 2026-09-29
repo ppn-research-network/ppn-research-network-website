@@ -1,0 +1,8 @@
+---
+import ComingSoon from '../../../components/ComingSoon.astro';
+import { withBase } from '../../../lib/url';
+---
+
+<ComingSoon title="Dataset" intro="Full details of a dataset listed in the directory, with a form to contact the custodian." current="data">
+  <a href={withBase("/data/")} class="mt-5 inline-block text-sm">Back to the data directory</a>
+</ComingSoon>

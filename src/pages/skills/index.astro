@@ -1,0 +1,8 @@
+---
+import ComingSoon from '../../components/ComingSoon.astro';
+import { withBase } from '../../lib/url';
+---
+
+<ComingSoon title="Skills directory" intro="Find collaborators across disciplines. Search by method, skill or what people are looking for, then get in touch through the site." current="skills">
+  <a href={withBase("/submit/profile/")} class="btn-secondary mt-5">Join the directory</a>
+</ComingSoon>

@@ -1,0 +1,138 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import { CONTACT_EMAIL, NETWORK_NAME } from '../../../site.config.mjs';
+---
+
+<SiteLayout title="Privacy and terms">
+  <article class="mx-auto max-w-3xl px-5 py-12 md:py-16">
+    <h1 class="text-4xl sm:text-5xl">Privacy and terms</h1>
+    <p class="mt-4 text-sm text-muted">Last updated <mark>[CHECK: date]</mark></p>
+
+    <div class="prose-page">
+      <p>
+        <mark>[CHECK: this notice is modelled on the Australian Privacy Principles but is not legal advice. Consider
+        asking a privacy officer at a partner institution to review it before launch.]</mark>
+      </p>
+
+      <h2>Privacy notice</h2>
+
+      <h3>Who we are</h3>
+      <p>
+        This website is run by the leadership committee of the {NETWORK_NAME} ("we", "us"). You can contact us about
+        privacy at any time at {CONTACT_EMAIL}.
+      </p>
+
+      <h3>What we collect</h3>
+      <ul>
+        <li>
+          <strong>Dataset listings:</strong> the description of the dataset, and the name, role and email address of its
+          contact person.
+        </li>
+        <li>
+          <strong>Skills profiles:</strong> your name and title, role, career stage, institution, state, discipline,
+          skills, short bio, ORCID iD, profile link, what you are looking for and open to, and your email address.
+        </li>
+        <li>
+          <strong>Messages sent through the site:</strong> the sender's name, email address and institution, and the
+          message.
+        </li>
+        <li>
+          <strong>Sign-in and membership</strong> (once available): your email address and the details you give when
+          requesting membership.
+        </li>
+      </ul>
+      <p>
+        We don't use advertising or analytics cookies, and we don't sell or share your information for marketing.
+        <mark>[CHECK]</mark>
+      </p>
+
+      <h3>Why we collect it</h3>
+      <p>
+        To publish approved listings, pass on messages between researchers, let you update or remove your listing, contact
+        you about your listing, and ask each year whether it is still current.
+      </p>
+
+      <h3>Who can see it</h3>
+      <ul>
+        <li>Once approved, everything in a listing <strong>except the email address</strong> is shown publicly.</li>
+        <li>
+          Email addresses are never shown on the site. Only the network's admins and our automated email system can see
+          them.
+        </li>
+        <li>
+          When you send a message through the site, we pass your name, email address, institution and message to the
+          custodian or researcher you contacted, so they can reply to you directly.
+        </li>
+      </ul>
+
+      <h3>Where it is stored</h3>
+      <p>
+        Listings and messages are stored in a database run by Supabase in Sydney, Australia. Emails are sent through a
+        Google Gmail account, and Google may store email outside Australia. The website itself is hosted by GitHub Pages in
+        the United States, which may record visitors' IP addresses for security. <mark>[CHECK]</mark>
+      </p>
+
+      <h3>How long we keep it</h3>
+      <p>
+        Listings are kept while they are published and deleted when you ask us to remove them or they are taken down.
+        Messages sent through the site are kept for 12 months and then deleted. <mark>[CHECK: retention period]</mark>
+      </p>
+
+      <h3>Your choices</h3>
+      <p>
+        You can ask to see, correct, update or remove your information at any time by emailing {CONTACT_EMAIL}. Once
+        sign-in is available, you will also be able to update or withdraw your own listings.
+      </p>
+
+      <h3>Complaints</h3>
+      <p>
+        If you have a concern about how we handle your information, email {CONTACT_EMAIL} and we will respond within 30
+        days. If you are not satisfied, you can contact the Office of the Australian Information Commissioner at
+        oaic.gov.au.
+      </p>
+
+      <h2>Terms of use</h2>
+
+      <h3>What a listing is</h3>
+      <p>
+        Listings describe data held by their custodians. The network does not hold, host or grant access to data, and a
+        listing is not an endorsement. Custodians remain responsible for ethics approvals, participant consent and data
+        agreements, and decide who may use their data.
+      </p>
+
+      <h3>What you must not submit</h3>
+      <ul>
+        <li>Data files, or any part of a dataset.</li>
+        <li>Anything that could identify a study participant.</li>
+        <li>Information about a dataset or a person that you do not have permission to share.</li>
+      </ul>
+
+      <h3>Accuracy</h3>
+      <p>
+        The person who submits a listing is responsible for its accuracy. We may lightly edit listings for clarity, and may
+        decline or remove any listing at our discretion.
+      </p>
+
+      <h3>Messages</h3>
+      <p>
+        Use the contact forms only for genuine research enquiries. We may block messages that are unsolicited marketing,
+        abusive or automated.
+      </p>
+
+      <h3>Updating or removing a listing</h3>
+      <p>
+        Email {CONTACT_EMAIL} and tell us which listing and what to change. Once sign-in is available, you will be able to
+        sign in with the email address on your listing to update or withdraw it yourself.
+      </p>
+
+      <h3>No warranty</h3>
+      <p>
+        We provide this website as is, and do not guarantee that listings are complete, accurate or current.
+        <mark>[CHECK]</mark>
+      </p>
+
+      <h3>Changes</h3>
+      <p>We may update these terms. The date at the top of this page shows when they last changed.</p>
+    </div>
+  </article>
+</SiteLayout>
