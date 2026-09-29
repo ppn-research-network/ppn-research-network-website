@@ -1,0 +1,27 @@
+---
+import '../styles/global.css';
+import { NETWORK_NAME } from '../../site.config.mjs';
+import { withBase } from '../lib/url';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = `${NETWORK_NAME}: a moderated directory of Australian nutrition datasets and researcher skills.` } = Astro.props;
+const pageTitle = title ? `${title} · ${NETWORK_NAME}` : NETWORK_NAME;
+---
+
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <title>{pageTitle}</title>
+  </head>
+  <body class="min-h-screen bg-paper text-ink antialiased">
+    <slot />
+  </body>
+</html>

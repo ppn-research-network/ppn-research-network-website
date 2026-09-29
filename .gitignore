@@ -1,0 +1,29 @@
+# build output
+dist/
+# generated types
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+
+# environment variables: secrets never go to GitHub
+.env
+.env.*
+!.env.example
+
+# local-only planning files and mockups (not for the public repository)
+Build_Plan.md
+*.docx
+design/
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# macOS-specific files
+.DS_Store
+
+# editor folders
+.idea/

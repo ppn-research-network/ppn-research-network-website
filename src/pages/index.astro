@@ -1,0 +1,25 @@
+---
+// Phase 1 placeholder. The real home page is built in Phase 3 from design/Mockup.pdf.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { NETWORK_NAME } from '../../site.config.mjs';
+import { withBase } from '../lib/url';
+---
+
+<BaseLayout>
+  <header class="border-b border-line">
+    <div class="mx-auto flex max-w-6xl items-center gap-3 px-5 py-4">
+      <img src={withBase('/favicon.svg')} alt="" width="32" height="32" />
+      <span class="font-serif text-lg font-medium leading-tight sm:text-xl">{NETWORK_NAME}</span>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-5 py-16 sm:py-24">
+    <p class="text-xs font-semibold uppercase tracking-widest text-accent">A national research network</p>
+    <h1 class="mt-4 max-w-3xl text-4xl leading-tight sm:text-6xl">
+      Find Australian nutrition data, and the people who can help you use it.
+    </h1>
+    <p class="mt-6 max-w-2xl text-lg text-muted">
+      This website is being built. The data directory, skills directory and members' resources are coming soon.
+    </p>
+  </main>
+</BaseLayout>
