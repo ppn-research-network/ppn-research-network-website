@@ -17,7 +17,9 @@ import { withBase } from '../../lib/url';
       <a href={withBase('/submit/')} class="btn-secondary hidden sm:inline-flex">Submit a dataset</a>
     </div>
     <div class="mt-8">
-      <DataDirectory client:only="react" />
+      <DataDirectory client:only="react">
+        <p slot="fallback" class="min-h-[90vh] text-muted">Loading datasets…</p>
+      </DataDirectory>
     </div>
   </div>
 </SiteLayout>

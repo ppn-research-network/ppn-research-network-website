@@ -21,7 +21,9 @@ import { withBase } from '../../lib/url';
       <a href={withBase('/submit/profile/')} class="btn-secondary hidden sm:inline-flex">Join the directory</a>
     </div>
     <div class="mt-8">
-      <SkillsDirectory client:only="react" />
+      <SkillsDirectory client:only="react">
+        <p slot="fallback" class="min-h-[90vh] text-muted">Loading profiles…</p>
+      </SkillsDirectory>
     </div>
   </div>
 </SiteLayout>

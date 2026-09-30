@@ -51,7 +51,8 @@ export function Checkbox({ label, checked, onChange }: { label: string; checked:
 }
 
 export function Loading({ what }: { what: string }) {
-  return <p className="card mt-4 p-8 text-center text-muted" role="status">Loading {what}…</p>;
+  // Tall on purpose: reserves space so the page doesn't jump when results arrive.
+  return <p className="card mt-4 min-h-[70vh] p-8 text-center text-muted" role="status">Loading {what}…</p>;
 }
 
 export function LoadError({ what }: { what: string }) {

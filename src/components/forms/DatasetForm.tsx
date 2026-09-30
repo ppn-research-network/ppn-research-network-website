@@ -214,7 +214,7 @@ export default function DatasetForm({ mode = 'submit', initial = blank, liveLeve
   const [extra, setExtra] = useState<OwnerExtra>({ ethics: '', note: '' });
 
   if (failed) return <LoadFailed />;
-  if (!vocab) return <p className="card p-6 text-muted" role="status">Loading the form…</p>;
+  if (!vocab) return <p className="min-h-[200vh] text-muted" role="status">Loading the form…</p>;
 
   const set = <K extends keyof DatasetValues>(key: K) => (value: DatasetValues[K]) => setV((prev) => ({ ...prev, [key]: value }));
   const err = (name: string) => errors[name];
