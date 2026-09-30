@@ -23,3 +23,7 @@ export const INSTITUTION_COUNT = 'more than 10';
 // Change this one line when membership opens internationally.
 export const MEMBERSHIP_ELIGIBILITY =
   'Membership is free and currently open to researchers, students, clinicians and practitioners working in nutrition or related fields in Australia. We plan to welcome international members in future.';
+
+// 'test' during the quiet launch to colleagues: shows a "Test version" banner and
+// asks search engines not to list the site. Change to 'live' at the public launch.
+export const SITE_STAGE = 'test';

@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { NETWORK_NAME } from '../../site.config.mjs';
+import { NETWORK_NAME, SITE_STAGE } from '../../site.config.mjs';
 import { withBase } from '../lib/url';
 
 interface Props {
@@ -19,6 +19,7 @@ const pageTitle = title ? `${title} · ${NETWORK_NAME}` : NETWORK_NAME;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    {SITE_STAGE !== 'live' && <meta name="robots" content="noindex, nofollow" />}
     <title>{pageTitle}</title>
     <slot name="head" />
   </head>

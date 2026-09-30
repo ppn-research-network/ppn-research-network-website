@@ -3,6 +3,8 @@
 import BaseLayout from './BaseLayout.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import type { NavKey } from '../lib/nav';
+import { SITE_STAGE } from '../../site.config.mjs';
+import { withBase } from '../lib/url';
 import SiteFooter from '../components/SiteFooter.astro';
 
 interface Props {
@@ -20,6 +22,12 @@ const { title, description, current, footerNote, membersFooter } = Astro.props;
     <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-card focus:px-4 focus:py-2">
       Skip to content
     </a>
+    {SITE_STAGE !== 'live' && (
+      <div class="bg-controlled px-5 py-2 text-center text-sm text-controlled-ink">
+        <strong>Test version.</strong> We're trying out this site with colleagues. Some listings are samples.
+        <a href={withBase('/contact/')} class="ml-1 text-controlled-ink">Send feedback</a>
+      </div>
+    )}
     <SiteHeader current={current} />
     <main id="main" class="flex-1">
       <slot />
