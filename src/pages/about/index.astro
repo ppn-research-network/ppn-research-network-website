@@ -7,65 +7,92 @@ import { INSTITUTION_COUNT, NETWORK_NAME, REVIEW_TIME } from '../../../site.conf
 <SiteLayout title="About" current="about">
   <article class="mx-auto max-w-3xl px-5 py-12 md:py-16">
     <p class="eyebrow">About the network</p>
-    <h1 class="mt-3 text-4xl sm:text-5xl">Connecting Australian nutrition research</h1>
+    <h1 class="mt-3 text-4xl sm:text-5xl">Connecting disciplines to advance precision and personalised nutrition</h1>
 
     <div class="prose-page">
       <p class="text-lg">
-        <mark>[CHECK]</mark> The {NETWORK_NAME} brings together Australian researchers working to understand why people
-        respond differently to food, and how nutrition advice and care can be tailored to the individual. We connect
-        nutrition scientists and dietitians with biomedical scientists, engineers, data scientists, statisticians and
-        clinicians, and make it easier to find and reuse the valuable datasets that already exist.
+        The {NETWORK_NAME} connects researchers across disciplines, students, clinicians and other professionals to
+        advance nutrition approaches tailored to individuals and communities.
+      </p>
+      <p>
+        Our goal is to build the capacity, skills and collaborations needed to translate precision and personalised
+        nutrition research into practice and improve population health.
+      </p>
+      <p>
+        The network provides a shared place to find datasets, connect with collaborators, exchange resources and develop
+        skills. It brings together expertise from nutrition and dietetics, medicine, biomedical science, engineering, data
+        science, statistics and other relevant fields, with opportunities to connect research, clinical practice and
+        policy.
       </p>
 
       <h2>Our aims</h2>
       <ul>
-        <li>Make existing Australian nutrition datasets easier to find and reuse, so that participants' contributions go further and studies are not repeated unnecessarily.</li>
-        <li>Connect researchers across disciplines to build the teams that precision nutrition needs.</li>
-        <li>Share practical know-how, such as protocols, templates and training recordings, among members.</li>
-        <li>Support students and early-career researchers through mentoring and supervision links.</li>
+        <li><strong>Enable data discovery and reuse.</strong> Help members find existing datasets and connect with their custodians, making better use of participants’ contributions and research investment.</li>
+        <li><strong>Build multidisciplinary collaborations.</strong> Connect people with complementary expertise to address questions that expand beyond traditional disciplinary boundaries.</li>
+        <li><strong>Strengthen capacity and capability.</strong> Share resources, practical knowledge and learning opportunities to help members develop and apply new skills.</li>
+        <li><strong>Support emerging researchers.</strong> Create opportunities for students and early-career researchers to connect with mentors, supervisors and collaborators.</li>
+        <li><strong>Advance research into practice.</strong> Support collaboration that helps bring precision and personalised nutrition into healthcare and community settings to improve health.</li>
       </ul>
 
       <h2>Who we are</h2>
       <p>
-        Researchers from {INSTITUTION_COUNT} Australian institutions have joined the network, spanning universities,
-        medical research institutes and health services. <mark>[CHECK]</mark>
+        We are a multidisciplinary network connecting people with a shared interest in advancing precision and
+        personalised nutrition. Researchers from {INSTITUTION_COUNT} Australian institutions have joined the network.
       </p>
       <p>
-        The network is led by its <strong>leadership committee</strong>, which runs this website and reviews every
-        listing. <mark>[CHECK: add committee members' names and roles here if you would like them listed.]</mark>
+        The network is overseen by a leadership committee of six researchers from organisations across several Australian
+        states, including New South Wales, Victoria and Western Australia. The committee guides the network’s activities,
+        manages requests and oversees the directory and its review process.
       </p>
 
-      <h2>How moderation works</h2>
-      <p>Every dataset and skills profile is checked by an admin from the leadership committee before it appears.</p>
+      <h2>How listings are reviewed</h2>
+      <p>
+        Every dataset listing and skills profile is reviewed by a member of the leadership committee before it appears in
+        the directory.
+      </p>
       <ol>
-        <li>You submit a listing. It is saved as pending and is not visible to anyone else.</li>
+        <li><strong>Submit your listing.</strong> It is saved as pending and is not visible to others while it is reviewed.</li>
         <li>
-          Within {REVIEW_TIME}, an admin checks that it describes data only (no files or details that could identify a
-          participant), that the person submitting it is the custodian or has their permission, and whether participant
-          consent covers secondary use.
+          <strong>We review your submission.</strong> Within {REVIEW_TIME}, a committee member checks the relevant
+          information. For dataset listings, this includes confirming that the submission describes the data without
+          including research data files or information that could identify participants, that you are the custodian or
+          have their permission, and that information about consent for secondary use is provided.
         </li>
-        <li>The admin approves the listing, or emails you with a question or the reason it can't be listed.</li>
-        <li>Once approved, it appears in the directory with the date it was listed and last reviewed.</li>
-        <li>Each year we ask custodians to confirm their listing is still current. Listings without a reply are taken down.</li>
+        <li><strong>We contact you if needed.</strong> We approve the listing or email you with questions or an explanation if it cannot be listed.</li>
+        <li><strong>Your approved listing is published.</strong> It appears in the directory with the dates it was listed and last reviewed.</li>
+        <li>
+          <strong>We check that listings remain current.</strong> Each year, we ask dataset custodians and profile owners
+          to confirm their information is current. Listings may be removed if we don’t hear back within 30 days.
+        </li>
       </ol>
       <p>
         You can update or remove your listing at any time. See <a href={withBase('/privacy/')}>Privacy and terms</a> for
-        how.
+        details.
       </p>
 
-      <h2>What the network does not do</h2>
+      <h2>Data access and responsibilities</h2>
       <p>
-        The network does not hold, host or grant access to research data. Each listing describes data held by its
-        custodian, who decides who can use it and on what terms, and who remains responsible for ethics approvals,
-        participant consent and data agreements. A listing is not an endorsement of a dataset or a researcher.
+        The directory helps people discover datasets and contact their custodians. The network does not hold or host
+        research data, or grant permission to access it.
+      </p>
+      <p>
+        <strong>The person submitting a listing is responsible for ensuring that the information they provide is
+        accurate, complete and kept up to date</strong>, and that they have the authority or the custodian’s permission to
+        submit it. The network is not responsible for the accuracy or completeness of information supplied by
+        contributors.
+      </p>
+      <p>
+        Each custodian decides who may use their data and on what terms, and remains responsible for relevant ethics
+        approvals, participant consent and data access agreements. Inclusion in the directory is not an endorsement of a
+        dataset or an individual.
       </p>
 
       <h2>Get involved</h2>
       <ul>
-        <li><a href={withBase('/submit/')}>Submit a dataset</a> you are willing to share.</li>
-        <li><a href={withBase('/submit/profile/')}>Join the skills directory</a> so collaborators can find you.</li>
-        <li><a href={withBase('/resources/')}>Become a member</a> to access recordings, templates and protocols.</li>
-        <li><a href={withBase('/contact/')}>Contact the admins</a> with questions or ideas.</li>
+        <li><a href={withBase('/submit/')}><strong>Submit a dataset listing</strong></a> to help others discover your data and discuss potential collaboration.</li>
+        <li><a href={withBase('/submit/profile/')}><strong>Join the skills directory</strong></a> to share your expertise and connect with collaborators.</li>
+        <li><a href={withBase('/resources/')}><strong>Become a member</strong></a> to access shared resources and learning opportunities, including recordings, templates and protocols.</li>
+        <li><a href={withBase('/contact/')}><strong>Contact the leadership committee</strong></a> with questions, suggestions or ideas for the network.</li>
       </ul>
     </div>
   </article>

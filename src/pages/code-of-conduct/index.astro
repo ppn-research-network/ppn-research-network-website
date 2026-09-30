@@ -4,40 +4,68 @@ import { withBase } from '../../lib/url';
 import { CONTACT_EMAIL, NETWORK_NAME } from '../../../site.config.mjs';
 ---
 
-<SiteLayout title="Member code of conduct">
+<SiteLayout title="Member code of conduct" membersFooter>
   <article class="mx-auto max-w-3xl px-5 py-12 md:py-16">
     <h1 class="text-4xl sm:text-5xl">Member code of conduct</h1>
     <div class="prose-page">
-      <p><mark>[CHECK]</mark> By joining the {NETWORK_NAME}, members agree to the following.</p>
+      <p class="text-lg">
+        The {NETWORK_NAME} brings together people from different disciplines, professions and career stages. Members are
+        expected to follow this code when using the directory, sharing resources, contacting others or taking part in
+        network activities.
+      </p>
 
-      <h2>Keep resources within the network</h2>
+      <h2>Use and share resources responsibly</h2>
       <ul>
-        <li>Recordings, templates and protocols on the Resources page are shared for members only. Don't pass them, or links to them, to people outside the network without the author's permission.</li>
-        <li>Use them for your own research, teaching and practice.</li>
+        <li>Resources made available exclusively to members must not be forwarded, republished or shared outside the network without the resource owner’s permission, and only in line with any ethical requirements.</li>
+        <li>Follow the licence and any conditions attached to each resource, including conditions on use, adaptation and redistribution. If permissions are unclear, ask the contributor before using or sharing it.</li>
+        <li>Do not share your sign-in details or links that give others access to restricted resources.</li>
       </ul>
 
-      <h2>Respect the people who shared them</h2>
+      <h2>Respect contributors and their work</h2>
       <ul>
-        <li>Each resource remains the work of the person or team who shared it. Acknowledge them when you use or adapt it, and follow any licence they give.</li>
-        <li>Only share things you have permission to share, and credit their authors.</li>
+        <li>Acknowledge the people or teams who created a resource when you use or adapt it.</li>
+        <li>Only contribute materials you own or have permission to share. Identify their source and explain any restrictions on their use.</li>
+        <li>Represent your expertise, affiliations and contributions accurately, and keep your directory information current.</li>
+        <li>Discuss roles, contributions and expectations early in a collaboration, including authorship, acknowledgement and use of shared materials.</li>
       </ul>
 
-      <h2>Protect participants</h2>
+      <h2>Protect participants and confidential information</h2>
       <ul>
-        <li>Share blank templates only. Never upload a completed consent form, participant data, or anything that could identify a participant.</li>
-        <li>Check every template against your own institution's ethics and governance requirements before using it.</li>
+        <li>Share blank templates only. Do not upload research datasets, completed consent forms, participant information or anything that could identify a participant.</li>
+        <li>Do not share confidential institutional, clinical or research information without authorisation.</li>
+        <li>Check resources against your own institution’s ethics and governance requirements before using them.</li>
+        <li>Arrange research data access directly with the custodian and follow the applicable approvals and agreements. A directory listing does not grant permission to access or use data.</li>
       </ul>
 
-      <h2>Be courteous</h2>
+      <h2>Treat others with respect</h2>
       <ul>
-        <li>Use the contact forms for genuine research enquiries. No marketing, recruitment spam or unsolicited sales.</li>
-        <li>Treat other members, custodians and researchers with respect, whatever their discipline or career stage.</li>
+        <li>Be courteous and inclusive, regardless of discipline, profession, career stage, background or identity.</li>
+        <li>Discuss differences constructively. Harassment, discrimination, bullying, intimidation and abusive behaviour are not acceptable.</li>
+        <li>Use contact forms for genuine enquiries relevant to the network, including research, clinical, policy, education and collaboration opportunities.</li>
+        <li>Do not use the network for unsolicited sales, marketing, bulk recruitment messages or repeated unwanted contact.</li>
+        <li>Respect others’ decisions about whether to respond, collaborate or provide access to resources or data.</li>
       </ul>
 
-      <h2>If something goes wrong</h2>
+      <h2>Raise concerns</h2>
       <p>
-        Tell the admins at {CONTACT_EMAIL} if you see a resource that shouldn't be shared, or behaviour that breaks this
-        code. The leadership committee may remove resources or end a membership that doesn't follow it.
+        Contact the leadership committee at <strong>{CONTACT_EMAIL}</strong> if you believe a resource has been shared
+        without permission or someone has breached this code. Provide enough detail to explain the concern, without
+        including sensitive material.
+      </p>
+      <p>
+        Reports will be handled sensitively and shared only with those who need the information to assess or respond to
+        the concern. Do not retaliate against someone for raising a concern in good faith.
+      </p>
+      <p>A committee member with a conflict of interest in a matter should not take part in reviewing or deciding it.</p>
+
+      <h2>Responding to breaches</h2>
+      <p>
+        The leadership committee may request corrections, issue a warning, remove a listing or resource, restrict access,
+        or suspend or end membership, depending on the nature and seriousness of the concern.
+      </p>
+      <p>
+        Where appropriate, the person concerned will have an opportunity to respond before a final decision is made.
+        Access or content may be restricted while a concern is reviewed.
       </p>
       <p><a href={withBase('/resources/')}>Back to resources</a></p>
     </div>

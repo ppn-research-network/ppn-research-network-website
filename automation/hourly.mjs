@@ -2,7 +2,7 @@
 //
 //   1. Touch the database so the free Supabase project never pauses.
 //   2. Once a day (from 9 am Sydney): queue annual-review reminders, delete
-//      records past their retention period.
+//      records and files past their retention period (see the privacy notice).
 //   3. Pass on contact messages (Reply-To = the sender).
 //   4. Send emails about people's own submissions (the outbox).
 //   5. Once a day: email admins a digest, only if something is waiting.
@@ -45,9 +45,12 @@ async function dailyPrep(today) {
     return;
   }
   const reminders = check(await db.rpc('queue_annual_reminders'), 'queueing annual reminders');
+  // Remove files of resources past their retention period, then the records.
+  const expired = check(await db.rpc('expired_resource_files'), 'finding expired files').map((r) => r.file_path);
+  if (expired.length) check(await db.storage.from('resources').remove(expired), 'removing expired files');
   const purged = check(await db.rpc('purge_old_records'), 'purging old records');
   check(await db.from('job_state').upsert({ key: 'daily_prep', value: today, updated_at: new Date().toISOString() }), 'saving job state');
-  log('Daily tasks done', { reminders_queued: reminders, old_messages_deleted: purged });
+  log('Daily tasks done', { reminders_queued: reminders, old_records_deleted: purged, old_files_deleted: expired.length });
 }
 
 // ---------------------------------------------------------------------------

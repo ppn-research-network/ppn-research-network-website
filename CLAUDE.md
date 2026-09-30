@@ -80,7 +80,8 @@ Tokens are defined once in `src/styles/global.css` (`@theme`); use the Tailwind 
 - Roles (Phase 4b): owner = signed-in email matches the private contact email (`owns_listing`); member = approved row in `members` for the signed-in email (`is_member`); admin = `admins`. Sign-in is a magic link for everyone (`src/lib/session.ts`); the account alone grants nothing.
 - Owners never write listings directly: `submit_revision` (pending listings are corrected in place; published ones create a `listing_revisions` row), `approve_revision` copies it over and writes `listing_history`. Forms have `mode="owner"` with `OwnerNotes` (ethics reference required when access opens up).
 - Members-only content is never in the static build; `ResourcesApp` loads it after sign-in. Files download through 60-second signed URLs.
-- Draft wording the owner must review is marked `<mark>[CHECK]</mark>`. List and remove these before launch (Phase 6).
+- Final wording for Home, About, Privacy and terms, and the code of conduct was supplied by the owner (Phase 6). Don't reword it without asking. Any new placeholder must be marked `<mark>[CHECK]</mark>` and listed for the owner.
+- Retention promised in the privacy notice is enforced by `purge_old_records()` (daily) and the weekly backup keeping 8 snapshots with history replaced. Change both together.
 - Admin names are not published; the site refers to "the leadership committee". Do not name the University of Newcastle or other institutions.
 
 ## Database

@@ -1,5 +1,5 @@
 # Weekly: back up the database and resource files to the PRIVATE backups
-# repository, then commit a small heartbeat file here so GitHub keeps the
+# repository (newest 8 weeks only; history is replaced each week), then commit a small heartbeat file here so GitHub keeps the
 # scheduled jobs switched on (it disables them after 60 days without activity).
 name: Weekly backup and heartbeat
 
@@ -40,19 +40,17 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
-      - name: Save the backup
+      - name: Save the backup (replacing the history, so old backups are removed)
         working-directory: backups
         run: |
           git config user.name "ppn-network-bot"
           git config user.email "ppn.researchnetwork@gmail.com"
+          git checkout -q --orphan fresh
           git add -A
-          if git diff --cached --quiet; then
-            echo "No changes since last week"
-          else
-            git commit -q -m "Weekly backup $(date -u +%Y-%m-%d)"
-            git push -q
-            echo "Backup saved"
-          fi
+          git commit -q -m "Weekly backup $(date -u +%Y-%m-%d)"
+          git branch -M fresh main
+          git push -q --force origin main
+          echo "Backup saved"
 
       - name: Heartbeat
         run: |

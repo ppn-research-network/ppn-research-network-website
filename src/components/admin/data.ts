@@ -57,6 +57,7 @@ export interface AdminResource {
   file_type: string | null;
   file_size: number | null;
   description: string | null;
+  licence: string | null;
   presenter: string | null;
   event_date: string | null;
   duration: string | null;

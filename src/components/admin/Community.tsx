@@ -169,6 +169,7 @@ function ResourceCard({ r, vocab, reload }: { r: AdminResource; vocab: Vocab; re
           : <a href={r.url ?? '#'} target="_blank" rel="noopener noreferrer" className="btn-secondary !min-h-9 !py-1">Open link</a>}
       </div>
       {r.description && <p className="mt-3 text-sm text-[#33403a]">{r.description}</p>}
+      {r.licence && <p className="mt-1 text-sm text-[#33403a]"><span className="font-semibold">Licence or conditions:</span> {r.licence}</p>}
       {(r.presenter || r.duration || r.event_date) && (
         <p className="mt-1 text-sm text-muted">{[r.presenter, r.duration, r.event_date && formatDate(r.event_date)].filter(Boolean).join(' · ')}</p>
       )}

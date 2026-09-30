@@ -1,12 +1,15 @@
 // Weekly backup, run by .github/workflows/weekly.yml.
-// Writes every table as CSV, plus the members' resource files, into the folder
-// given on the command line (a checkout of the PRIVATE backups repository).
+// Writes every table as CSV, plus the members' resource files, into a dated
+// snapshot folder inside the folder given on the command line (a checkout of
+// the PRIVATE backups repository), and keeps only the newest KEEP snapshots.
+// The workflow then replaces the repository's history with a single commit,
+// so older backups are really gone (privacy notice: about 8 weeks).
 //
 //   node automation/backup.mjs <folder>
 //
 // Logs are public: counts only.
 
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { log, safeError, serviceClient } from './lib.mjs';
 
@@ -16,14 +19,17 @@ const TABLES = [
   'vocab_terms', 'outbox', 'job_state',
 ];
 const PAGE = 1000;
+const KEEP = 8;
 
-const out = process.argv[2];
-if (!out) {
+const root = process.argv[2];
+if (!root) {
   console.error('Usage: node automation/backup.mjs <folder>');
   process.exit(1);
 }
 
 const db = serviceClient();
+const snapshot = new Date().toISOString().slice(0, 10);
+const out = join(root, 'snapshots', snapshot);
 
 function csvCell(value) {
   if (value == null) return '';
@@ -62,10 +68,10 @@ async function listFiles(prefix = '') {
 }
 
 try {
-  // Start fresh each week so deleted records disappear from the latest copy;
-  // earlier weeks stay in the backup repository's history.
-  rmSync(join(out, 'tables'), { recursive: true, force: true });
-  rmSync(join(out, 'files'), { recursive: true, force: true });
+  // Tidy up the layout used before snapshots existed.
+  rmSync(join(root, 'tables'), { recursive: true, force: true });
+  rmSync(join(root, 'files'), { recursive: true, force: true });
+  rmSync(out, { recursive: true, force: true });
   mkdirSync(join(out, 'tables'), { recursive: true });
 
   const counts = {};
@@ -80,15 +86,22 @@ try {
     writeFileSync(target, Buffer.from(await data.arrayBuffer()));
   }
 
-  writeFileSync(join(out, 'README.md'), `# Backup of the network website database
+  // Keep only the newest KEEP weekly snapshots.
+  const all = readdirSync(join(root, 'snapshots')).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
+  const removed = all.slice(0, Math.max(0, all.length - KEEP));
+  for (const d of removed) rmSync(join(root, 'snapshots', d), { recursive: true, force: true });
+
+  writeFileSync(join(root, 'README.md'), `# Backups of the network website database
 
 Updated ${new Date().toISOString()} by the weekly job in ppn-research-network-website.
+
+\`snapshots/<date>/\` holds one weekly backup each; only the newest ${KEEP} are kept, and the repository's history
+is replaced every week, so older backups are permanently removed (as the privacy notice promises).
 
 - \`tables/\`: one CSV file per database table (lists and JSON columns are stored as JSON text).
 - \`files/\`: members' resource files, in the same folders as in Supabase Storage.
 
 PRIVATE: contains email addresses and messages. Never make this repository public.
-Earlier weeks are in this repository's commit history.
 
 ## Restoring
 Table structure comes from the migrations in the website repository (\`supabase/migrations\`). Rows can be
@@ -96,7 +109,7 @@ imported from these CSV files in the Supabase dashboard (Table Editor, Import da
 datasets and profiles, then their contacts, then everything else.
 `);
 
-  log('Backup written', { ...counts, files: files.length });
+  log('Backup written', { ...counts, files: files.length, snapshots_kept: all.length - removed.length, snapshots_removed: removed.length });
 } catch (err) {
   console.error(`Backup failed: ${safeError(err)}`);
   process.exit(1);

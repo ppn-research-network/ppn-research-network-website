@@ -21,6 +21,7 @@ interface Resource {
   file_path: string | null;
   file_type: 'pdf' | 'docx' | 'xlsx' | null;
   description: string | null;
+  licence: string | null;
   presenter: string | null;
   event_date: string | null;
   duration: string | null;
@@ -201,6 +202,7 @@ function Library() {
                   <p className="mt-1 text-sm text-muted">
                     {[r.presenter ?? r.shared_by_name, r.event_date && `Recorded ${formatDate(r.event_date)}`].filter(Boolean).join(' · ')}
                   </p>
+                  {r.licence && <p className="mt-1 text-xs text-muted">Conditions: {r.licence}</p>}
                 </div>
               </li>
             ))}
@@ -245,6 +247,7 @@ function ResourceList({ rows, vocab, showCategory = false }: { rows: Resource[];
           <div className="min-w-0 flex-1">
             <p className="font-semibold">{r.title}</p>
             {r.description && <p className="mt-0.5 text-sm text-[#33403a]">{r.description}</p>}
+            {r.licence && <p className="mt-0.5 text-sm text-[#33403a]"><span className="font-semibold">Licence or conditions:</span> {r.licence}</p>}
             <p className="mt-0.5 text-sm text-muted">
               {[showCategory && labelFor(vocab, 'resource_category', r.category), r.kind === 'link' && 'External link',
                 `Shared by ${r.shared_by_name}`, `${r.kind === 'link' ? 'Added' : 'Updated'} ${formatDate(r.updated_at).replace(/^\d+ /, '')}`]
@@ -290,7 +293,7 @@ const FILE_TYPES: Record<string, 'pdf' | 'docx' | 'xlsx'> = {
 const MAX_BYTES = 10 * 1024 * 1024;
 
 function ShareForm({ vocab, onCancel, onDone }: { vocab: Vocab; onCancel: () => void; onDone: () => void }) {
-  const [v, setV] = useState({ title: '', category: '', how: 'file' as 'file' | 'link', url: '', description: '', presenter: '', event_date: '', duration: '', confirms: false });
+  const [v, setV] = useState({ title: '', category: '', how: 'file' as 'file' | 'link', url: '', description: '', licence: '', presenter: '', event_date: '', duration: '', confirms: false });
   const [file, setFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<Errors>({});
   const [problem, setProblem] = useState('');
@@ -318,6 +321,7 @@ function ShareForm({ vocab, onCancel, onDone }: { vocab: Vocab; onCancel: () => 
       e.file = 'Files must be 10 MB or smaller';
     }
     add('description', lengthError(v.description, 0, 600, ''));
+    add('licence', lengthError(v.licence, 0, 300, ''));
     if (!v.confirms) e.confirms = 'Tick the box to confirm you may share this';
     setErrors(e);
     if (Object.keys(e).length) {
@@ -342,7 +346,7 @@ function ShareForm({ vocab, onCancel, onDone }: { vocab: Vocab; onCancel: () => 
         title: v.title, category: v.category,
         url: how === 'link' ? v.url.trim() : null,
         file_path, file_type: file ? FILE_TYPES[file.type] : null, file_size: file?.size ?? null,
-        description: v.description, presenter: isRecording ? v.presenter : null,
+        description: v.description, licence: v.licence, presenter: isRecording ? v.presenter : null,
         event_date: isRecording && v.event_date ? v.event_date : null, duration: isRecording ? v.duration : null,
         confirms_rights: v.confirms,
       },
@@ -358,7 +362,7 @@ function ShareForm({ vocab, onCancel, onDone }: { vocab: Vocab; onCancel: () => 
       <h1 className="mt-3 text-3xl">Share a resource</h1>
       <p className="mt-2 text-sm text-muted">An admin checks every resource before other members see it. It stays your work, credited to you.</p>
       <form noValidate onSubmit={onSubmit} className="relative mt-8 space-y-6">
-        <ErrorSummary ref={summaryRef} errors={errors} labels={{ title: 'Title', category: 'Type', url: 'Web address', file: 'File', description: 'Description', confirms: 'Permission' }} />
+        <ErrorSummary ref={summaryRef} errors={errors} labels={{ title: 'Title', category: 'Type', url: 'Web address', file: 'File', description: 'Description', licence: 'Licence or conditions', confirms: 'Permission' }} />
         <TextField name="title" label="Title" required value={v.title} onChange={set('title')} error={errors.title} maxLength={200} />
         <SelectField name="category" label="Type" required options={activeTerms(vocab, 'resource_category')} value={v.category} onChange={set('category')} error={errors.category} />
 
@@ -399,6 +403,11 @@ function ShareForm({ vocab, onCancel, onDone }: { vocab: Vocab; onCancel: () => 
         )}
 
         <TextArea name="description" label="Short description" maxLength={600} rows={3} value={v.description} onChange={set('description')} error={errors.description} />
+        <TextField
+          name="licence" label="Licence or conditions of use"
+          hint="For example: CC BY 4.0, or “Adapt freely; please acknowledge the study team”. Leave blank if there are none."
+          value={v.licence} onChange={set('licence')} error={errors.licence} maxLength={300}
+        />
 
         <div>
           <label className="choice rounded-lg border border-line bg-paper p-4 text-sm">
