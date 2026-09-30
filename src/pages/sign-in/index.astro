@@ -1,7 +1,10 @@
 ---
-import ComingSoon from '../../components/ComingSoon.astro';
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import SignInPage from '../../components/account/SignInPage.tsx';
 ---
 
-<ComingSoon title="Sign in" intro="Sign in with a one-time email link to update your listings or, once you are a member, to see resources." current="sign-in">
-
-</ComingSoon>
+<SiteLayout title="Sign in" current="sign-in">
+  <div class="mx-auto max-w-6xl px-5 py-12 md:py-16">
+    <SignInPage client:only="react" />
+  </div>
+</SiteLayout>

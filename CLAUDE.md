@@ -58,6 +58,7 @@ Tokens are defined once in `src/styles/global.css` (`@theme`); use the Tailwind 
 - `npm run db:push`: apply new migrations to the linked Supabase project (Sydney, ref `tjhpayiavitmcbkegnqq`; ignore the stray Singapore project)
 - `npm run test:security` / `npm run test:security:cleanup`: security tests as an anonymous visitor, then remove their test rows
 - `npm run samples:add` / `npm run samples:remove`: load or delete the sample listings
+- `npm run test:roles`: signed-in security tests (owners, members, strangers); creates and deletes temporary accounts
 - `supabase db query --linked` runs only one statement when given inline SQL; use `-f file.sql` for several
 
 ## Site structure
@@ -69,6 +70,9 @@ Tokens are defined once in `src/styles/global.css` (`@theme`); use the Tailwind 
 - Admin (`/admin/`, `src/components/admin/`): magic-link sign-in with `shouldCreateUser: false`; the same `DatasetForm`/`ProfileForm` are reused with `mode="admin"` for editing. Admin updates must `.select()` the row back so a refused update is reported, not silent.
 - Datasets have `access_levels` (array, most to least open: open, registered, controlled, collaboration); more than one requires `access_notes`. Titles (`honorific`) are a word list.
 - Sample listings are flagged `is_sample`; `npm run samples:remove` before launch.
+- Roles (Phase 4b): owner = signed-in email matches the private contact email (`owns_listing`); member = approved row in `members` for the signed-in email (`is_member`); admin = `admins`. Sign-in is a magic link for everyone (`src/lib/session.ts`); the account alone grants nothing.
+- Owners never write listings directly: `submit_revision` (pending listings are corrected in place; published ones create a `listing_revisions` row), `approve_revision` copies it over and writes `listing_history`. Forms have `mode="owner"` with `OwnerNotes` (ethics reference required when access opens up).
+- Members-only content is never in the static build; `ResourcesApp` loads it after sign-in. Files download through 60-second signed URLs.
 - Draft wording the owner must review is marked `<mark>[CHECK]</mark>`. List and remove these before launch (Phase 6).
 - Admin names are not published; the site refers to "the leadership committee". Do not name the University of Newcastle or other institutions.
 

@@ -1,7 +1,17 @@
 ---
-import ComingSoon from '../../components/ComingSoon.astro';
+// Members only. No resource is in the page itself: they load from the
+// database after an approved member signs in.
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import ResourcesApp from '../../components/resources/ResourcesApp.tsx';
 ---
 
-<ComingSoon title="Resources are for network members" intro="Members can watch workshop and webinar recordings and download templates and protocols shared by other members. The data and skills directories stay open to everyone." current="resources" locked>
-
-</ComingSoon>
+<SiteLayout
+  title="Resources"
+  current="resources"
+  membersFooter
+  footerNote="Resources are shared by members for members. Each file remains the work of the person who shared it."
+>
+  <div class="mx-auto max-w-6xl px-5 py-10 md:py-14">
+    <ResourcesApp client:only="react" />
+  </div>
+</SiteLayout>

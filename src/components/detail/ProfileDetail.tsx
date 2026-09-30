@@ -132,7 +132,7 @@ export default function ProfileDetail() {
             messageHint="Say who you are and what you'd like to discuss."
           />
           <div className="mt-6 space-y-1.5 border-t border-line pt-4 text-center text-sm">
-            <a href={withBase('/sign-in/')} className="block">Is this your profile? Sign in to update it</a>
+            <a href={withBase('/account/')} className="block">Is this your profile? Sign in to update it</a>
             <a href={withBase('/contact/')} className="block">Report a problem with this profile</a>
           </div>
         </aside>

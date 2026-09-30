@@ -66,3 +66,22 @@ Removing samples never touches real listings.
 ## Admin dashboard
 
 Admins sign in at `/admin/` with a one-time email link (no passwords, no sign-ups; only people in `admins` get in). Tabs: pending datasets, pending profiles, published listings, contact requests and listings due for annual review.
+
+## Members, owner updates and resources (Phase 4b)
+
+| Table | Holds | Who can read |
+| --- | --- | --- |
+| `members` | Membership requests and members | Admins; each person their own row |
+| `listing_revisions` | Owner-proposed changes, with ethics references | Admins; the listing's owner |
+| `listing_history` | Public change log (read through `public_listing_history`) | Everyone, for published listings |
+| `resources` | Members' recordings, templates and protocols | Approved members (approved items), the sharer, admins |
+
+- **Listing owners** are recognised by signing in with the private email on a listing. They propose changes with `submit_revision`; the live listing only changes when an admin approves (`approve_revision`). Opening access up needs an ethics reference. `withdraw_listing` takes a listing down at once.
+- **Members** request membership with `request_membership`; an admin approves the row in `members`. They become members when they sign in with that email.
+- **Files** live in the private `resources` storage bucket (PDF, DOCX, XLSX, 10 MB max). Members upload to `uploads/<their user id>/`; only approved members can download approved files, through links that expire after a minute.
+
+```sh
+npm run test:roles   # signed-in security checks (creates and deletes temporary test accounts)
+```
+
+**End someone's membership:** admin dashboard → Membership requests → Show: Members → End membership.

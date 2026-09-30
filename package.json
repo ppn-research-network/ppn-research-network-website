@@ -15,7 +15,8 @@
     "test:security": "node --env-file=.env --test tests/security.test.mjs",
     "test:security:cleanup": "supabase db query --linked -f supabase/cleanup-security-tests.sql",
     "samples:add": "supabase db query --linked -f supabase/samples/add-samples.sql",
-    "samples:remove": "supabase db query --linked -f supabase/samples/remove-samples.sql"
+    "samples:remove": "supabase db query --linked -f supabase/samples/remove-samples.sql",
+    "test:roles": "node --env-file=.env --test tests/roles.test.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^7.0.0",

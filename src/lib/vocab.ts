@@ -12,7 +12,9 @@ export type VocabList =
   | 'career_stage'
   | 'looking_for'
   | 'open_to'
-  | 'honorific';
+  | 'honorific'
+  | 'member_role'
+  | 'resource_category';
 
 export interface VocabTerm {
   list: VocabList;
@@ -34,6 +36,8 @@ const EMPTY: Vocab = {
   looking_for: [],
   open_to: [],
   honorific: [],
+  member_role: [],
+  resource_category: [],
 };
 
 export async function loadVocab(): Promise<Vocab> {

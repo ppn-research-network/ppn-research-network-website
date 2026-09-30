@@ -10,8 +10,9 @@ interface Props {
   description?: string;
   current?: NavKey;
   footerNote?: string;
+  membersFooter?: boolean;
 }
-const { title, description, current, footerNote } = Astro.props;
+const { title, description, current, footerNote, membersFooter } = Astro.props;
 ---
 
 <BaseLayout title={title} description={description}>
@@ -23,6 +24,6 @@ const { title, description, current, footerNote } = Astro.props;
     <main id="main" class="flex-1">
       <slot />
     </main>
-    <SiteFooter note={footerNote} />
+    <SiteFooter note={footerNote} members={membersFooter} />
   </div>
 </BaseLayout>

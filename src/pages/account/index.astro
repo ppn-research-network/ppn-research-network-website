@@ -1,0 +1,12 @@
+---
+// Everything on this page loads after sign-in; nothing personal is in the page itself.
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import AccountApp from '../../components/account/AccountApp.tsx';
+---
+
+<SiteLayout title="My account" current="sign-in">
+  <meta name="robots" content="noindex" slot="head" />
+  <div class="mx-auto max-w-6xl px-5 py-10 md:py-14">
+    <AccountApp client:only="react" />
+  </div>
+</SiteLayout>

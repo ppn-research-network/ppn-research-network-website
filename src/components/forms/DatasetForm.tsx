@@ -2,6 +2,7 @@ import { useRef, useState, type SubmitEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useVocab, activeTerms } from '../../lib/vocab';
 import { ACCESS_LEVELS, CONSENT_OPTIONS, STATES } from '../../lib/listings';
+import { OwnerNotes, ReadOnlyEmail, moreOpen, type OwnerExtra } from './OwnerNotes';
 import type { AdminDataset } from '../../lib/types';
 import { withBase } from '../../lib/url';
 import {
@@ -70,6 +71,7 @@ const LABELS: Record<string, string> = {
   contact_name: 'Contact name',
   contact_role: 'Contact role',
   email: 'Contact email',
+  ethics: 'Ethics approval for this change',
   consent_to_list: 'Consent',
 };
 
@@ -144,7 +146,7 @@ export function fromDataset(d: AdminDataset, email: string): DatasetValues {
   };
 }
 
-function validate(v: DatasetValues, needsConsent: boolean): Errors {
+function validate(v: DatasetValues, needsConsent: boolean, needsEthics = false, ethics = ''): Errors {
   const e: Errors = {};
   const set = (name: string, msg?: string) => { if (msg) e[name] = msg; };
 
@@ -182,19 +184,24 @@ function validate(v: DatasetValues, needsConsent: boolean): Errors {
   set('contact_role', lengthError(v.contact_role, 2, 120, 'the contact’s role'));
   if (!EMAIL_RE.test(v.email.trim())) e.email = 'Enter an email address, like name@example.edu.au';
   if (needsConsent && !v.consent_to_list) e.consent_to_list = 'Tick the box to confirm the dataset can be listed';
+  if (needsEthics && !ethics.trim()) e.ethics = 'Access is becoming more open, so give the ethics approval reference for this change';
   return e;
 }
 
 interface Props {
   // 'submit': public form, sends through submit_dataset.
-  // 'admin': edit an existing listing; onSave does the saving.
-  mode?: 'submit' | 'admin';
+  // 'admin':  edit an existing listing; onSave does the saving.
+  // 'owner':  the listing's owner proposes changes; email is fixed, and an
+  //           admin-only note (with ethics reference if access opens up) is added.
+  mode?: 'submit' | 'admin' | 'owner';
   initial?: DatasetValues;
-  onSave?: (listing: DatasetListing, email: string) => Promise<string | null>;
+  liveLevels?: string[];   // owner mode: the access levels visitors see now
+  submitLabel?: string;
+  onSave?: (listing: DatasetListing, email: string, extra: OwnerExtra) => Promise<string | null>;
   onCancel?: () => void;
 }
 
-export default function DatasetForm({ mode = 'submit', initial = blank, onSave, onCancel }: Props) {
+export default function DatasetForm({ mode = 'submit', initial = blank, liveLevels, submitLabel, onSave, onCancel }: Props) {
   const { vocab, failed } = useVocab();
   const [v, setV] = useState<DatasetValues>(initial);
   const [errors, setErrors] = useState<Errors>({});
@@ -203,6 +210,8 @@ export default function DatasetForm({ mode = 'submit', initial = blank, onSave, 
   const summaryRef = useRef<HTMLDivElement>(null);
   const submitErrorRef = useRef<HTMLParagraphElement>(null);
   const isSubmit = mode === 'submit';
+  const isOwner = mode === 'owner';
+  const [extra, setExtra] = useState<OwnerExtra>({ ethics: '', note: '' });
 
   if (failed) return <LoadFailed />;
   if (!vocab) return <p className="card p-6 text-muted" role="status">Loading the form…</p>;
@@ -210,11 +219,12 @@ export default function DatasetForm({ mode = 'submit', initial = blank, onSave, 
   const set = <K extends keyof DatasetValues>(key: K) => (value: DatasetValues[K]) => setV((prev) => ({ ...prev, [key]: value }));
   const err = (name: string) => errors[name];
   const mixed = v.access_levels.length > 1;
+  const opensUp = isOwner && moreOpen(v.access_levels, liveLevels ?? initial.access_levels);
 
   async function onSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitError('');
-    const found = validate(v, isSubmit);
+    const found = validate(v, isSubmit, opensUp, extra.ethics);
     setErrors(found);
     if (Object.keys(found).length > 0) {
       requestAnimationFrame(() => summaryRef.current?.focus());
@@ -232,7 +242,7 @@ export default function DatasetForm({ mode = 'submit', initial = blank, onSave, 
       });
       if (error) problem = friendlyError(error);
     } else if (onSave) {
-      problem = await onSave(listing, v.email.trim());
+      problem = await onSave(listing, v.email.trim(), extra);
     }
     setSending(false);
 
@@ -309,6 +319,7 @@ export default function DatasetForm({ mode = 'submit', initial = blank, onSave, 
           hint="Tick more than one if different parts of the data are shared differently."
           options={ACCESS_LEVELS.map((a) => ({ code: a.code, label: a.label, description: a.description }))}
           values={v.access_levels} onChange={set('access_levels')} error={err('access_levels')}
+          marker={isOwner ? (code) => (liveLevels ?? initial.access_levels).includes(code) && <span className="text-sm font-normal text-accent">(current)</span> : undefined}
         />
         <CheckboxGroup
           name="access_requirements" legend="What will people need?"
@@ -342,11 +353,15 @@ export default function DatasetForm({ mode = 'submit', initial = blank, onSave, 
           <TextField name="contact_name" label="Name" hint="Shown on the listing" required autoComplete="name" value={v.contact_name} onChange={set('contact_name')} error={err('contact_name')} />
           <TextField name="contact_role" label="Role" hint="Shown on the listing" required placeholder="e.g. Chief Investigator" value={v.contact_role} onChange={set('contact_role')} error={err('contact_role')} />
         </div>
-        <TextField
-          name="email" label="Email" type="email" required autoComplete="email"
-          hint="Never shown on the site. We use it to pass on messages and so you can update the listing later."
-          value={v.email} onChange={set('email')} error={err('email')}
-        />
+        {isOwner ? (
+          <ReadOnlyEmail email={v.email} />
+        ) : (
+          <TextField
+            name="email" label="Email" type="email" required autoComplete="email"
+            hint="Never shown on the site. We use it to pass on messages and so you can update the listing later."
+            value={v.email} onChange={set('email')} error={err('email')}
+          />
+        )}
         {isSubmit && (
           <ConsentBox name="consent_to_list" checked={v.consent_to_list} onChange={set('consent_to_list')} error={err('consent_to_list')}>
             I am the custodian of this dataset, or have their permission to list it, and I agree to this description being
@@ -356,6 +371,7 @@ export default function DatasetForm({ mode = 'submit', initial = blank, onSave, 
       </Section>
 
       {isSubmit && <Honeypot value={v.website} onChange={set('website')} />}
+      {isOwner && <OwnerNotes extra={extra} onChange={setExtra} needsEthics={opensUp} error={err('ethics')} />}
 
       <div className="space-y-4 border-t border-line pt-8">
         {submitError && (
@@ -365,7 +381,7 @@ export default function DatasetForm({ mode = 'submit', initial = blank, onSave, 
         )}
         <div className="flex flex-wrap gap-3">
           <button type="submit" className="btn-primary w-full sm:w-auto" disabled={sending}>
-            {sending ? 'Saving…' : isSubmit ? 'Submit for review' : 'Save changes'}
+            {sending ? 'Saving…' : submitLabel ?? (isSubmit ? 'Submit for review' : 'Save changes')}
           </button>
           {onCancel && <button type="button" className="btn-secondary" onClick={onCancel}>Cancel</button>}
         </div>

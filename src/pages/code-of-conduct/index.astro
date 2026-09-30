@@ -1,0 +1,45 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import { withBase } from '../../lib/url';
+import { CONTACT_EMAIL, NETWORK_NAME } from '../../../site.config.mjs';
+---
+
+<SiteLayout title="Member code of conduct">
+  <article class="mx-auto max-w-3xl px-5 py-12 md:py-16">
+    <h1 class="text-4xl sm:text-5xl">Member code of conduct</h1>
+    <div class="prose-page">
+      <p><mark>[CHECK]</mark> By joining the {NETWORK_NAME}, members agree to the following.</p>
+
+      <h2>Keep resources within the network</h2>
+      <ul>
+        <li>Recordings, templates and protocols on the Resources page are shared for members only. Don't pass them, or links to them, to people outside the network without the author's permission.</li>
+        <li>Use them for your own research, teaching and practice.</li>
+      </ul>
+
+      <h2>Respect the people who shared them</h2>
+      <ul>
+        <li>Each resource remains the work of the person or team who shared it. Acknowledge them when you use or adapt it, and follow any licence they give.</li>
+        <li>Only share things you have permission to share, and credit their authors.</li>
+      </ul>
+
+      <h2>Protect participants</h2>
+      <ul>
+        <li>Share blank templates only. Never upload a completed consent form, participant data, or anything that could identify a participant.</li>
+        <li>Check every template against your own institution's ethics and governance requirements before using it.</li>
+      </ul>
+
+      <h2>Be courteous</h2>
+      <ul>
+        <li>Use the contact forms for genuine research enquiries. No marketing, recruitment spam or unsolicited sales.</li>
+        <li>Treat other members, custodians and researchers with respect, whatever their discipline or career stage.</li>
+      </ul>
+
+      <h2>If something goes wrong</h2>
+      <p>
+        Tell the admins at {CONTACT_EMAIL} if you see a resource that shouldn't be shared, or behaviour that breaks this
+        code. The leadership committee may remove resources or end a membership that doesn't follow it.
+      </p>
+      <p><a href={withBase('/resources/')}>Back to resources</a></p>
+    </div>
+  </article>
+</SiteLayout>

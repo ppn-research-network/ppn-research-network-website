@@ -8,6 +8,8 @@ import { EMAIL_RE } from '../forms/Fields';
 import { useAdminData } from './data';
 import Queue from './Queue';
 import { AnnualReview, Published, Requests, dueForReview } from './Lists';
+import Updates from './Updates';
+import { Memberships, PendingResources } from './Community';
 
 type Access = 'checking' | 'signed-out' | 'not-admin' | 'admin';
 
@@ -108,14 +110,23 @@ function SignIn() {
   );
 }
 
-type Tab = 'datasets' | 'profiles' | 'published' | 'requests' | 'annual';
+type Tab = 'datasets' | 'profiles' | 'updates' | 'members' | 'resources' | 'published' | 'requests' | 'annual';
 
 function Dashboard({ email }: { email: string }) {
   const { data, error, reload } = useAdminData();
   const { vocab } = useVocab();
   const [tab, setTab] = useState<Tab>(() => (new URLSearchParams(window.location.search).get('tab') as Tab) || 'datasets');
 
+  // Refresh when switching tab or coming back to the window, so new
+  // submissions appear without reloading the page.
+  useEffect(() => {
+    const onFocus = () => { reload(); };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [reload]);
+
   const go = (t: Tab) => {
+    reload();
     setTab(t);
     window.history.replaceState(null, '', `${window.location.pathname}?tab=${t}`);
     document.getElementById('admin-main')?.focus();
@@ -125,12 +136,18 @@ function Dashboard({ email }: { email: string }) {
     datasets: data.datasets.filter((d) => d.status === 'pending').length,
     profiles: data.profiles.filter((p) => p.status === 'pending').length,
     requests: data.requests.filter((r) => r.status === 'queued').length,
+    updates: data.revisions.filter((r) => r.status === 'pending').length,
+    members: data.members.filter((m) => m.status === 'pending').length,
+    resources: data.resources.filter((r) => r.status === 'pending').length,
     annual: dueForReview(data, vocab).length,
   } : null;
 
   const tabs: { key: Tab; label: string; count?: number; urgent?: boolean }[] = [
     { key: 'datasets', label: 'Pending datasets', count: counts?.datasets, urgent: true },
     { key: 'profiles', label: 'Pending profiles', count: counts?.profiles, urgent: true },
+    { key: 'updates', label: 'Update requests', count: counts?.updates, urgent: true },
+    { key: 'members', label: 'Membership requests', count: counts?.members, urgent: true },
+    { key: 'resources', label: 'Pending resources', count: counts?.resources, urgent: true },
     { key: 'published', label: 'Published listings' },
     { key: 'requests', label: 'Contact requests', count: counts?.requests },
     { key: 'annual', label: 'Due for annual review', count: counts?.annual },
@@ -184,6 +201,9 @@ function Dashboard({ email }: { email: string }) {
           <div className="max-w-6xl">
             {tab === 'datasets' && <Queue kind="dataset" data={data} vocab={vocab} reload={reload} />}
             {tab === 'profiles' && <Queue kind="profile" data={data} vocab={vocab} reload={reload} />}
+            {tab === 'updates' && <Updates data={data} vocab={vocab} reload={reload} />}
+            {tab === 'members' && <Memberships data={data} vocab={vocab} reload={reload} />}
+            {tab === 'resources' && <PendingResources data={data} vocab={vocab} reload={reload} />}
             {tab === 'published' && <Published data={data} vocab={vocab} reload={reload} />}
             {tab === 'requests' && <Requests data={data} vocab={vocab} reload={reload} />}
             {tab === 'annual' && <AnnualReview data={data} vocab={vocab} reload={reload} />}

@@ -11,6 +11,7 @@ export default function DatasetDetail() {
   const [d, setD] = useState<PublicDataset | null>(null);
   const [vocab, setVocab] = useState<Vocab | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'missing' | 'failed'>('loading');
+  const [history, setHistory] = useState<{ id: string; happened_at: string; summary: string }[]>([]);
 
   useEffect(() => {
     const slug = new URLSearchParams(window.location.search).get('slug') ?? '';
@@ -20,6 +21,9 @@ export default function DatasetDetail() {
         setVocab(v);
         if (!data) return setStatus('missing');
         setD(data as PublicDataset);
+        supabase.from('public_listing_history').select('id, happened_at, summary')
+          .eq('dataset_id', (data as PublicDataset).id).order('happened_at', { ascending: false })
+          .then(({ data: h }) => setHistory(h ?? []));
         document.title = `${(data as PublicDataset).title} · ${NETWORK_NAME}`;
         setStatus('ready');
       })
@@ -131,6 +135,12 @@ export default function DatasetDetail() {
           <section aria-labelledby="history">
             <h2 id="history" className="text-2xl">Listing history</h2>
             <dl className="mt-3 grid grid-cols-[7rem_1fr] gap-y-2 text-sm text-[#33403a]">
+              {history.map((h) => (
+                <div key={h.id} className="contents">
+                  <dt className="text-muted">{formatDate(h.happened_at)}</dt>
+                  <dd>{h.summary}</dd>
+                </div>
+              ))}
               <dt className="text-muted">{formatDate(d.listed_at)}</dt>
               <dd>Listed</dd>
             </dl>
@@ -153,7 +163,7 @@ export default function DatasetDetail() {
             messageHint="Briefly describe your project and how you would use the data."
           />
           <div className="mt-6 space-y-1.5 border-t border-line pt-4 text-center text-sm">
-            <a href={withBase('/sign-in/')} className="block">Is this your dataset? Sign in to update it</a>
+            <a href={withBase('/account/')} className="block">Is this your dataset? Sign in to update it</a>
             <a href={withBase('/contact/')} className="block">Report a problem with this listing</a>
           </div>
         </aside>

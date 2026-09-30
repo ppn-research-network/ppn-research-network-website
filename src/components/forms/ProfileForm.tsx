@@ -2,6 +2,7 @@ import { useRef, useState, type SubmitEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useVocab, activeTerms } from '../../lib/vocab';
 import { STATES } from '../../lib/listings';
+import { OwnerNotes, ReadOnlyEmail, type OwnerExtra } from './OwnerNotes';
 import type { AdminProfile } from '../../lib/types';
 import { withBase } from '../../lib/url';
 import {
@@ -121,13 +122,14 @@ function validate(v: ProfileValues, needsConsent: boolean): Errors {
 }
 
 interface Props {
-  mode?: 'submit' | 'admin';
+  mode?: 'submit' | 'admin' | 'owner';
   initial?: ProfileValues;
-  onSave?: (listing: ProfileListing, email: string) => Promise<string | null>;
+  submitLabel?: string;
+  onSave?: (listing: ProfileListing, email: string, extra: OwnerExtra) => Promise<string | null>;
   onCancel?: () => void;
 }
 
-export default function ProfileForm({ mode = 'submit', initial = blank, onSave, onCancel }: Props) {
+export default function ProfileForm({ mode = 'submit', initial = blank, submitLabel, onSave, onCancel }: Props) {
   const { vocab, failed } = useVocab();
   const [v, setV] = useState<ProfileValues>(initial);
   const [errors, setErrors] = useState<Errors>({});
@@ -136,6 +138,8 @@ export default function ProfileForm({ mode = 'submit', initial = blank, onSave, 
   const summaryRef = useRef<HTMLDivElement>(null);
   const submitErrorRef = useRef<HTMLParagraphElement>(null);
   const isSubmit = mode === 'submit';
+  const isOwner = mode === 'owner';
+  const [extra, setExtra] = useState<OwnerExtra>({ ethics: '', note: '' });
 
   if (failed) return <LoadFailed />;
   if (!vocab) return <p className="card p-6 text-muted" role="status">Loading the form…</p>;
@@ -164,7 +168,7 @@ export default function ProfileForm({ mode = 'submit', initial = blank, onSave, 
       });
       if (error) problem = friendlyError(error);
     } else if (onSave) {
-      problem = await onSave(listing, v.email.trim());
+      problem = await onSave(listing, v.email.trim(), extra);
     }
     setSending(false);
 
@@ -233,11 +237,15 @@ export default function ProfileForm({ mode = 'submit', initial = blank, onSave, 
       </Section>
 
       <Section step={4} total={TOTAL} title={isSubmit ? 'Contact and consent' : 'Contact'}>
-        <TextField
-          name="email" label="Email" type="email" required autoComplete="email"
-          hint="Never shown on the site. We use it to pass on messages and so you can update your profile later."
-          value={v.email} onChange={set('email')} error={err('email')}
-        />
+        {isOwner ? (
+          <ReadOnlyEmail email={v.email} />
+        ) : (
+          <TextField
+            name="email" label="Email" type="email" required autoComplete="email"
+            hint="Never shown on the site. We use it to pass on messages and so you can update your profile later."
+            value={v.email} onChange={set('email')} error={err('email')}
+          />
+        )}
         {isSubmit && (
           <ConsentBox name="consent_to_list" checked={v.consent_to_list} onChange={set('consent_to_list')} error={err('consent_to_list')}>
             I agree to this profile being shown publicly in the skills directory once approved, and to receiving messages
@@ -247,6 +255,7 @@ export default function ProfileForm({ mode = 'submit', initial = blank, onSave, 
       </Section>
 
       {isSubmit && <Honeypot value={v.website} onChange={set('website')} />}
+      {isOwner && <OwnerNotes extra={extra} onChange={setExtra} />}
 
       <div className="space-y-4 border-t border-line pt-8">
         {submitError && (
@@ -256,7 +265,7 @@ export default function ProfileForm({ mode = 'submit', initial = blank, onSave, 
         )}
         <div className="flex flex-wrap gap-3">
           <button type="submit" className="btn-primary w-full sm:w-auto" disabled={sending}>
-            {sending ? 'Saving…' : isSubmit ? 'Submit for review' : 'Save changes'}
+            {sending ? 'Saving…' : submitLabel ?? (isSubmit ? 'Submit for review' : 'Save changes')}
           </button>
           {onCancel && <button type="button" className="btn-secondary" onClick={onCancel}>Cancel</button>}
         </div>

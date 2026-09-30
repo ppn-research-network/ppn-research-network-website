@@ -4,17 +4,25 @@ import { withBase } from '../lib/url';
 
 interface Props {
   note?: string;
+  members?: boolean;   // members' pages link to the code of conduct instead
 }
 const {
   note = 'Listings describe data held by their custodians. The network does not hold, host or grant access to data, and a listing is not an endorsement.',
+  members = false,
 } = Astro.props;
 
-const links = [
-  { href: '/about/', label: 'About' },
-  { href: '/privacy/', label: 'Privacy and terms' },
-  { href: '/contact/', label: 'Contact the admins' },
-  { href: '/admin/', label: 'Admin login' },
-];
+const links = members
+  ? [
+      { href: '/about/', label: 'About' },
+      { href: '/code-of-conduct/', label: 'Member code of conduct' },
+      { href: '/contact/', label: 'Contact the admins' },
+    ]
+  : [
+      { href: '/about/', label: 'About' },
+      { href: '/privacy/', label: 'Privacy and terms' },
+      { href: '/contact/', label: 'Contact the admins' },
+      { href: '/admin/', label: 'Admin login' },
+    ];
 ---
 
 <footer class="mt-auto bg-footer text-white/75">
