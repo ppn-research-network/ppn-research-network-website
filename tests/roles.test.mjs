@@ -86,6 +86,7 @@ after(async () => {
   if (memberFile) await clients.admin?.storage.from('resources').remove([memberFile]);
   sql(`
     delete from public.resources where shared_by_email like 'roles-test-%@example.com';
+    delete from public.outbox where to_email like 'roles-test-%@example.com';
     delete from public.datasets where title like '[Roles test]%';
     delete from public.members where email like 'roles-test-%@example.com';
     delete from public.admins where email like 'roles-test-%@example.com';

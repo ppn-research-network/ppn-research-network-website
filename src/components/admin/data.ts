@@ -13,7 +13,7 @@ export interface ContactRequest {
   sender_email: string;
   sender_institution: string | null;
   message: string;
-  status: 'queued' | 'sent' | 'failed' | 'blocked';
+  status: 'queued' | 'sent' | 'failed' | 'blocked' | 'skipped';
   attempts: number;
   last_error: string | null;
   created_at: string;

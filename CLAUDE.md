@@ -51,6 +51,13 @@ Tokens are defined once in `src/styles/global.css` (`@theme`); use the Tailwind 
 - Say exactly when Supabase keys are needed and where to find them; the owner pastes them into `.env` themselves.
 - Commit at the end of each phase with a clear message, then give a short summary: what was built, how to check it in a browser, what comes next.
 
+## Email automation (Phase 5)
+- `automation/hourly.mjs` (GitHub Actions `.github/workflows/hourly.yml`, every hour): keep-alive query, relays `contact_requests` (Reply-To = sender), sends the `outbox` (rows written by database triggers on each event), and once a day from 9 am Sydney queues annual reminders, purges records older than 12 months and emails admins a digest if anything is waiting. Hand-started runs default to a dry run.
+- `automation/backup.mjs` (`.github/workflows/weekly.yml`, Monday early morning Sydney): CSV of every table plus resource files to the PRIVATE repo `ppn-research-network-backups` (deploy key secret `BACKUP_DEPLOY_KEY`), then a heartbeat commit here.
+- Actions logs are public: automation code logs counts only via `log()`, never addresses, names, messages or keys. Errors pass through `safeError()`.
+- Addresses at example.com/org/net are never emailed (samples and tests); they are marked skipped.
+- Repository secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, GMAIL_USER, GMAIL_APP_PASSWORD, BACKUP_DEPLOY_KEY. The service role key must never be used in `src/`.
+
 ## Commands
 - `npm run dev`: run locally at http://localhost:4321/ppn-research-network-website/
 - `npm run build`: build the static site into `dist/`

@@ -1,0 +1,64 @@
+# Weekly: back up the database and resource files to the PRIVATE backups
+# repository, then commit a small heartbeat file here so GitHub keeps the
+# scheduled jobs switched on (it disables them after 60 days without activity).
+name: Weekly backup and heartbeat
+
+on:
+  schedule:
+    - cron: '23 16 * * 0'   # Sunday 16:23 UTC = early Monday morning in Sydney
+  workflow_dispatch:
+
+permissions:
+  contents: write   # only for the heartbeat commit to this repository
+
+concurrency:
+  group: weekly-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Check out the private backups repository
+        uses: actions/checkout@v7
+        with:
+          repository: ppn-research-network/ppn-research-network-backups
+          ssh-key: ${{ secrets.BACKUP_DEPLOY_KEY }}
+          path: backups
+
+      - name: Export tables and files
+        run: node automation/backup.mjs backups
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Save the backup
+        working-directory: backups
+        run: |
+          git config user.name "ppn-network-bot"
+          git config user.email "ppn.researchnetwork@gmail.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes since last week"
+          else
+            git commit -q -m "Weekly backup $(date -u +%Y-%m-%d)"
+            git push -q
+            echo "Backup saved"
+          fi
+
+      - name: Heartbeat
+        run: |
+          date -u +%Y-%m-%dT%H:%MZ > .github/heartbeat.txt
+          git config user.name "ppn-network-bot"
+          git config user.email "ppn.researchnetwork@gmail.com"
+          git add .github/heartbeat.txt
+          git commit -q -m "Weekly heartbeat"
+          git push -q

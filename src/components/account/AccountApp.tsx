@@ -24,6 +24,7 @@ interface MyListing {
   revision: Record<string, unknown> | null;
   revision_note: string | null;
   admin_note: string | null;
+  review_due: boolean;
 }
 
 interface MyResource {
@@ -165,6 +166,13 @@ function ListingCard({ r, vocab, onEdit, onChanged }: { r: MyListing; vocab: Voc
   const href = withBase(r.kind === 'dataset' ? `/data/dataset/?slug=${r.slug}` : `/skills/profile/?slug=${r.slug}`);
   const liveAccess = r.kind === 'dataset' ? accessBadge(r.listing.access_levels as string[]).text : '';
 
+  const confirmCurrent = async () => {
+    setBusy(true);
+    await supabase.rpc('confirm_listing_current', { p_kind: r.kind, p_id: r.id });
+    setBusy(false);
+    await onChanged();
+  };
+
   const cancel = async () => {
     setBusy(true);
     await supabase.rpc('cancel_revision', { p_kind: r.kind, p_id: r.id });
@@ -206,6 +214,15 @@ function ListingCard({ r, vocab, onEdit, onChanged }: { r: MyListing; vocab: Voc
         </div>
       )}
       {r.status === 'pending' && <p className="mt-3 text-sm text-muted">An admin is reviewing this listing. You can still correct it.</p>}
+      {r.review_due && !r.revision_status && (
+        <div className="mt-4 flex flex-col gap-3 rounded-lg bg-band p-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+          <p>Once a year we ask you to check this listing is still accurate. Is it?</p>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <button type="button" className="btn-primary !min-h-9 !py-1" disabled={busy} onClick={confirmCurrent}>Yes, it’s still current</button>
+            <button type="button" className="btn-secondary !min-h-9 !py-1" onClick={onEdit}>Update it</button>
+          </div>
+        </div>
+      )}
     </li>
   );
 }

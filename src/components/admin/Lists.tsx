@@ -162,6 +162,7 @@ const REQUEST_TEXT: Record<ContactRequest['status'], [string, string]> = {
   sent: ['Sent', 'bg-open text-open-ink'],
   failed: ['Failed', 'bg-controlled text-danger'],
   blocked: ['Blocked', 'bg-collab text-collab-ink'],
+  skipped: ['Not sent: test address', 'bg-collab text-collab-ink'],
 };
 
 export function Requests({ data, vocab, reload }: { data: AdminData; vocab: Vocab; reload: () => Promise<void> }) {
@@ -242,8 +243,9 @@ export function AnnualReview({ data, vocab, reload }: { data: AdminData; vocab: 
     <>
       <h1 className="text-4xl">Due for annual review</h1>
       <p className="mt-2 max-w-3xl text-muted">
-        Published listings not reviewed in the last 12 months. Check with the custodian or researcher that the listing is
-        still current, then mark it as reviewed, edit it, or unpublish it from Published listings.
+        Published listings not reviewed in the last 12 months. The owner is emailed a reminder automatically and can
+        confirm the listing themselves. If there's no reply after 30 days, check with them, then mark it as reviewed, edit
+        it, or unpublish it from Published listings.
       </p>
       {problem && <p role="alert" className="mt-4 text-sm font-semibold text-danger">{problem}</p>}
       {due.length === 0 ? (
@@ -257,6 +259,11 @@ export function AnnualReview({ data, vocab, reload }: { data: AdminData; vocab: 
                 <div>
                   <p className="font-semibold">{e.name}</p>
                   <p className="text-sm text-muted">{e.where} · Last reviewed {formatDate(e.item.last_reviewed_at) || 'never'} · {email}</p>
+                  <p className="text-sm text-muted">
+                    {e.item.reminder_sent_at
+                      ? `Reminder emailed ${formatDate(e.item.reminder_sent_at)}${Date.now() - new Date(e.item.reminder_sent_at).getTime() > 30 * 86400000 ? ' · no reply after 30 days' : ''}`
+                      : 'Reminder not sent yet (goes out with the next daily run)'}
+                  </p>
                 </div>
                 <button type="button" className="btn-secondary !min-h-9 !py-1" onClick={() => reviewed(e)}>Mark as reviewed</button>
               </li>

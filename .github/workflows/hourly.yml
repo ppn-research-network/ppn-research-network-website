@@ -1,0 +1,46 @@
+# Hourly email job: keeps Supabase awake, passes on contact messages, sends
+# notification emails, and once a day (from 9 am Sydney) sends the admin digest.
+# Logs are public: the script prints counts only.
+name: Hourly email job
+
+on:
+  schedule:
+    - cron: '7 * * * *'   # every hour, at 7 minutes past (UTC)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Practice run: report what would happen, send nothing'
+        type: boolean
+        default: true
+      force_daily:
+        description: 'Also run the once-a-day tasks now (digest, reminders, clean-up)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hourly-email-job
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: node automation/hourly.mjs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          # Scheduled runs are always real; hand-started runs default to a practice run.
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && 'true' || 'false' }}
+          FORCE_DAILY: ${{ github.event_name == 'workflow_dispatch' && inputs.force_daily && 'true' || 'false' }}

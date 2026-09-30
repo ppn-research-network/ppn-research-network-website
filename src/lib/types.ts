@@ -63,6 +63,7 @@ interface Moderation {
   last_reviewed_at: string | null;
   is_sample: boolean;
   consent_to_list: boolean;
+  reminder_sent_at: string | null;
 }
 
 // Full rows, visible to admins only
