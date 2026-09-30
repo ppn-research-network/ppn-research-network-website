@@ -26,4 +26,5 @@ export const MEMBERSHIP_ELIGIBILITY =
 
 // 'test' during the quiet launch to colleagues: shows a "Test version" banner and
 // asks search engines not to list the site. Change to 'live' at the public launch.
+/** @type {'test' | 'live'} */
 export const SITE_STAGE = 'test';
