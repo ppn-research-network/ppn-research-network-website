@@ -11,7 +11,7 @@ export default function SignInPage() {
     if (session) window.location.replace(withBase('/account/'));
   }, [session]);
 
-  if (!ready || session) return <p className="py-16 text-muted" role="status">Checking your sign-in…</p>;
+  if (!ready || session) return <p className="min-h-[90vh] text-muted" role="status">Checking your sign-in…</p>;
   return (
     <>
       <h1 className="text-4xl sm:text-5xl">Sign in</h1>

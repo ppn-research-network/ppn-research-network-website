@@ -12,6 +12,8 @@ import ResourcesApp from '../../components/resources/ResourcesApp.tsx';
   footerNote="Resources are shared by members for members. Each file remains the work of the person who shared it."
 >
   <div class="mx-auto max-w-6xl px-5 py-10 md:py-14">
-    <ResourcesApp client:only="react" />
+    <ResourcesApp client:only="react">
+      <p slot="fallback" class="min-h-[90vh] text-muted">Checking your membership…</p>
+    </ResourcesApp>
   </div>
 </SiteLayout>

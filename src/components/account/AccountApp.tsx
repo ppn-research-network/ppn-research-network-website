@@ -42,7 +42,7 @@ export default function AccountApp() {
   const { session, ready, email } = useSession();
   const [section, setSection] = useState<Section>(() => (new URLSearchParams(window.location.search).get('section') as Section) || 'listings');
 
-  if (!ready) return <p className="py-16 text-muted" role="status">Checking your sign-in…</p>;
+  if (!ready) return <p className="min-h-[90vh] text-muted" role="status">Checking your sign-in…</p>;
 
   if (!session) {
     return (

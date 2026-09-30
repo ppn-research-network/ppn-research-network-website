@@ -42,7 +42,7 @@ export default function ResourcesApp() {
     else loadMembership().then(setMembership);
   }, [ready, session]);
 
-  if (!ready || membership === undefined) return <p className="py-16 text-muted" role="status">Checking your membership…</p>;
+  if (!ready || membership === undefined) return <p className="min-h-[90vh] text-muted" role="status">Checking your membership…</p>;
   if (!session) return <Gate />;
   if (membership?.status === 'approved') return <Library />;
   return <NotYet email={email} membership={membership} />;
@@ -122,7 +122,7 @@ function Library() {
     (!category || r.category === category)
     && matchesSearch(q, [r.title, r.description, r.presenter, r.shared_by_name, vocab ? labelFor(vocab, 'resource_category', r.category) : ''])), [rows, q, category, vocab]);
 
-  if (!vocab || !rows) return <p className="py-16 text-muted" role="status">Loading resources…</p>;
+  if (!vocab || !rows) return <p className="min-h-[90vh] text-muted" role="status">Loading resources…</p>;
 
   if (sharing) {
     return <ShareForm vocab={vocab} onCancel={() => setSharing(false)} onDone={() => { setSharing(false); setThanks(true); window.scrollTo(0, 0); }} />;
