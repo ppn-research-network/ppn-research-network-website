@@ -1,8 +1,11 @@
 ---
-import ComingSoon from '../../../components/ComingSoon.astro';
-import { withBase } from '../../../lib/url';
+// One page serves every dataset: it reads ?slug=… and loads the listing.
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+import DatasetDetail from '../../../components/detail/DatasetDetail.tsx';
 ---
 
-<ComingSoon title="Dataset" intro="Full details of a dataset listed in the directory, with a form to contact the custodian." current="data">
-  <a href={withBase("/data/")} class="mt-5 inline-block text-sm">Back to the data directory</a>
-</ComingSoon>
+<SiteLayout title="Dataset" current="data">
+  <div class="mx-auto max-w-6xl px-5 py-10 md:py-12">
+    <DatasetDetail client:load />
+  </div>
+</SiteLayout>

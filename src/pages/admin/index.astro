@@ -1,7 +1,11 @@
 ---
-import ComingSoon from '../../components/ComingSoon.astro';
+// Admin dashboard. Nothing private is in this page: everything loads from
+// Supabase after an admin signs in, and the database only answers admins.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdminApp from '../../components/admin/AdminApp.tsx';
 ---
 
-<ComingSoon title="Admin" intro="The approval dashboard for the leadership committee.">
-
-</ComingSoon>
+<BaseLayout title="Admin">
+  <meta name="robots" content="noindex" slot="head" />
+  <AdminApp client:only="react" />
+</BaseLayout>

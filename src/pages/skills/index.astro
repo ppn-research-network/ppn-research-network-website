@@ -1,8 +1,27 @@
 ---
-import ComingSoon from '../../components/ComingSoon.astro';
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import SkillsDirectory from '../../components/directory/SkillsDirectory.tsx';
 import { withBase } from '../../lib/url';
 ---
 
-<ComingSoon title="Skills directory" intro="Find collaborators across disciplines. Search by method, skill or what people are looking for, then get in touch through the site." current="skills">
-  <a href={withBase("/submit/profile/")} class="btn-secondary mt-5">Join the directory</a>
-</ComingSoon>
+<SiteLayout
+  title="Skills directory"
+  current="skills"
+  footerNote="Profiles are written by the people listed and checked by an admin. Email addresses are never shown."
+>
+  <div class="mx-auto max-w-6xl px-5 py-10 md:py-14">
+    <div class="flex flex-wrap items-end justify-between gap-6">
+      <div>
+        <h1 class="text-4xl sm:text-5xl">Skills directory</h1>
+        <p class="mt-4 max-w-2xl text-[#33403a] sm:text-lg">
+          Find collaborators across disciplines. Search by method, skill or what people are looking for, then get in
+          touch through the site.
+        </p>
+      </div>
+      <a href={withBase('/submit/profile/')} class="btn-secondary hidden sm:inline-flex">Join the directory</a>
+    </div>
+    <div class="mt-8">
+      <SkillsDirectory client:only="react" />
+    </div>
+  </div>
+</SiteLayout>

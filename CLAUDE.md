@@ -56,13 +56,19 @@ Tokens are defined once in `src/styles/global.css` (`@theme`); use the Tailwind 
 - `npm run build`: build the static site into `dist/`
 - `npm run check`: type-check
 - `npm run db:push`: apply new migrations to the linked Supabase project (Sydney, ref `tjhpayiavitmcbkegnqq`; ignore the stray Singapore project)
-- `npm run test:security` / `npm run test:security:cleanup`: security tests as an anonymous visitor, then remove their pending test rows
+- `npm run test:security` / `npm run test:security:cleanup`: security tests as an anonymous visitor, then remove their test rows
+- `npm run samples:add` / `npm run samples:remove`: load or delete the sample listings
+- `supabase db query --linked` runs only one statement when given inline SQL; use `-f file.sql` for several
 
 ## Site structure
 - `site.config.mjs` also holds CONTACT_EMAIL, REVIEW_TIME and INSTITUTION_COUNT; use them rather than repeating the wording.
 - Pages use `SiteLayout` (header + footer). Reusable styles: `btn-primary`, `btn-secondary`, `btn-danger`, `card`, `eyebrow`, `badge`, `tag`, `input`, `field-label`, `choice`, `prose-page` (in `global.css`).
 - Forms are React islands in `src/components/forms/`, built from `Fields.tsx` (labels, hints, inline errors, error summary, honeypot, consent box, privacy notice). Validate in the browser to match the database constraints.
 - Detail page URLs: `/data/dataset/?slug=…` and `/skills/profile/?slug=…` (static pages that load the listing at runtime).
+- Directories (`src/components/directory/`) load all approved rows and filter in the browser; filters live in the page address. Use `client:only="react"` for components that read the URL on load.
+- Admin (`/admin/`, `src/components/admin/`): magic-link sign-in with `shouldCreateUser: false`; the same `DatasetForm`/`ProfileForm` are reused with `mode="admin"` for editing. Admin updates must `.select()` the row back so a refused update is reported, not silent.
+- Datasets have `access_levels` (array, most to least open: open, registered, controlled, collaboration); more than one requires `access_notes`. Titles (`honorific`) are a word list.
+- Sample listings are flagged `is_sample`; `npm run samples:remove` before launch.
 - Draft wording the owner must review is marked `<mark>[CHECK]</mark>`. List and remove these before launch (Phase 6).
 - Admin names are not published; the site refers to "the leadership committee". Do not name the University of Newcastle or other institutions.
 

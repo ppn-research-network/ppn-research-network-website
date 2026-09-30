@@ -51,3 +51,18 @@ To remove an admin, delete their row from `admins`.
 - Add an option: insert a row with the `list` name, a new lowercase `code` (letters, numbers and underscores only) and a `label`. Use `sort_order` to position it.
 - Never change or delete a `code` once listings use it.
 - Study designs also have a `filter_group`, which is the name of the directory filter they appear under.
+
+## Sample listings
+
+The six datasets and six people from the mockups (plus a few pending ones for the admin queue) can be loaded for testing. They are flagged `is_sample` and use example.com emails.
+
+```sh
+npm run samples:add      # load (or reset) the samples
+npm run samples:remove   # delete every sample, with any messages sent to them — do this before launch
+```
+
+Removing samples never touches real listings.
+
+## Admin dashboard
+
+Admins sign in at `/admin/` with a one-time email link (no passwords, no sign-ups; only people in `admins` get in). Tabs: pending datasets, pending profiles, published listings, contact requests and listings due for annual review.

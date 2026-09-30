@@ -1,8 +1,15 @@
 ---
-import ComingSoon from '../../../components/ComingSoon.astro';
-import { withBase } from '../../../lib/url';
+// One page serves every profile: it reads ?slug=… and loads the listing.
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+import ProfileDetail from '../../../components/detail/ProfileDetail.tsx';
 ---
 
-<ComingSoon title="Profile" intro="A researcher's full skills profile, with a form to get in touch." current="skills">
-  <a href={withBase("/skills/")} class="mt-5 inline-block text-sm">Back to the skills directory</a>
-</ComingSoon>
+<SiteLayout
+  title="Profile"
+  current="skills"
+  footerNote="Profiles are written by the people listed and checked by an admin. Email addresses are never shown."
+>
+  <div class="mx-auto max-w-6xl px-5 py-10 md:py-12">
+    <ProfileDetail client:load />
+  </div>
+</SiteLayout>

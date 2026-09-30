@@ -1,17 +1,18 @@
 import { useRef, useState, type SubmitEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useVocab, activeTerms } from '../../lib/vocab';
-import { HONORIFICS, STATES } from '../../lib/listings';
+import { STATES } from '../../lib/listings';
+import type { AdminProfile } from '../../lib/types';
 import { withBase } from '../../lib/url';
 import {
   CheckboxGroup, ConsentBox, EMAIL_RE, ErrorSummary, Honeypot, LoadFailed, PrivacyNotice,
-  Section, SelectField, TextArea, TextField,
+  Section, SelectField, TagField, TextArea, TextField,
   friendlyError, lengthError, splitList, urlError, type Errors,
 } from './Fields';
 
 const TOTAL = 4;
 
-const initial = {
+const blank = {
   honorific: '',
   full_name: '',
   role: '',
@@ -30,7 +31,8 @@ const initial = {
   website: '',
 };
 
-type Values = typeof initial;
+export type ProfileValues = typeof blank;
+export type ProfileListing = ReturnType<typeof toListing>;
 
 const LABELS: Record<string, string> = {
   full_name: 'Name',
@@ -52,7 +54,48 @@ function cleanOrcid(value: string): string {
   return value.trim().replace(/^https?:\/\/(www\.)?orcid\.org\//i, '').toUpperCase();
 }
 
-function validate(v: Values): Errors {
+const orNull = (s: string) => (s.trim() ? s.trim() : null);
+
+export function toListing(v: ProfileValues) {
+  return {
+    honorific: v.honorific || null,
+    full_name: v.full_name.trim(),
+    role: v.role.trim(),
+    career_stage: v.career_stage,
+    institution: v.institution.trim(),
+    state: v.state,
+    discipline: v.discipline,
+    skills: splitList(v.skills),
+    bio: v.bio.trim(),
+    orcid: v.orcid.trim() ? cleanOrcid(v.orcid) : null,
+    profile_url: orNull(v.profile_url),
+    looking_for: v.looking_for,
+    open_to: v.open_to,
+  };
+}
+
+export function fromProfile(p: AdminProfile, email: string): ProfileValues {
+  return {
+    ...blank,
+    honorific: p.honorific ?? '',
+    full_name: p.full_name,
+    role: p.role,
+    career_stage: p.career_stage,
+    institution: p.institution,
+    state: p.state,
+    discipline: p.discipline,
+    skills: p.skills.join(', '),
+    bio: p.bio,
+    orcid: p.orcid ?? '',
+    profile_url: p.profile_url ?? '',
+    looking_for: p.looking_for,
+    open_to: p.open_to,
+    email,
+    consent_to_list: true,
+  };
+}
+
+function validate(v: ProfileValues, needsConsent: boolean): Errors {
   const e: Errors = {};
   const set = (name: string, msg?: string) => { if (msg) e[name] = msg; };
 
@@ -73,29 +116,37 @@ function validate(v: Values): Errors {
   set('profile_url', urlError(v.profile_url));
 
   if (!EMAIL_RE.test(v.email.trim())) e.email = 'Enter an email address, like name@example.edu.au';
-  if (!v.consent_to_list) e.consent_to_list = 'Tick the box to confirm your profile can be listed';
+  if (needsConsent && !v.consent_to_list) e.consent_to_list = 'Tick the box to confirm your profile can be listed';
   return e;
 }
 
-export default function ProfileForm() {
+interface Props {
+  mode?: 'submit' | 'admin';
+  initial?: ProfileValues;
+  onSave?: (listing: ProfileListing, email: string) => Promise<string | null>;
+  onCancel?: () => void;
+}
+
+export default function ProfileForm({ mode = 'submit', initial = blank, onSave, onCancel }: Props) {
   const { vocab, failed } = useVocab();
-  const [v, setV] = useState<Values>(initial);
+  const [v, setV] = useState<ProfileValues>(initial);
   const [errors, setErrors] = useState<Errors>({});
   const [submitError, setSubmitError] = useState('');
   const [sending, setSending] = useState(false);
   const summaryRef = useRef<HTMLDivElement>(null);
   const submitErrorRef = useRef<HTMLParagraphElement>(null);
+  const isSubmit = mode === 'submit';
 
   if (failed) return <LoadFailed />;
   if (!vocab) return <p className="card p-6 text-muted" role="status">Loading the form…</p>;
 
-  const set = <K extends keyof Values>(key: K) => (value: Values[K]) => setV((prev) => ({ ...prev, [key]: value }));
+  const set = <K extends keyof ProfileValues>(key: K) => (value: ProfileValues[K]) => setV((prev) => ({ ...prev, [key]: value }));
   const err = (name: string) => errors[name];
 
   async function onSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitError('');
-    const found = validate(v);
+    const found = validate(v, isSubmit);
     setErrors(found);
     if (Object.keys(found).length > 0) {
       requestAnimationFrame(() => summaryRef.current?.focus());
@@ -103,35 +154,26 @@ export default function ProfileForm() {
     }
 
     setSending(true);
-    const profile = {
-      honorific: v.honorific,
-      full_name: v.full_name,
-      role: v.role,
-      career_stage: v.career_stage,
-      institution: v.institution,
-      state: v.state,
-      discipline: v.discipline,
-      skills: splitList(v.skills),
-      bio: v.bio,
-      orcid: v.orcid.trim() ? cleanOrcid(v.orcid) : '',
-      profile_url: v.profile_url,
-      looking_for: v.looking_for,
-      open_to: v.open_to,
-      consent_to_list: v.consent_to_list,
-    };
-    const { error } = await supabase.rpc('submit_profile', {
-      p_profile: profile,
-      p_email: v.email.trim(),
-      p_website: v.website,
-    });
+    const listing = toListing(v);
+    let problem: string | null = null;
+    if (isSubmit) {
+      const { error } = await supabase.rpc('submit_profile', {
+        p_profile: { ...listing, consent_to_list: v.consent_to_list },
+        p_email: v.email.trim(),
+        p_website: v.website,
+      });
+      if (error) problem = friendlyError(error);
+    } else if (onSave) {
+      problem = await onSave(listing, v.email.trim());
+    }
     setSending(false);
 
-    if (error) {
-      setSubmitError(friendlyError(error));
+    if (problem) {
+      setSubmitError(problem);
       requestAnimationFrame(() => submitErrorRef.current?.focus());
       return;
     }
-    window.location.href = withBase('/submit/thanks/?type=profile');
+    if (isSubmit) window.location.href = withBase('/submit/thanks/?type=profile');
   }
 
   return (
@@ -142,7 +184,7 @@ export default function ProfileForm() {
         <div className="grid gap-6 sm:grid-cols-[10rem_1fr]">
           <SelectField
             name="honorific" label="Title" placeholder="None"
-            options={HONORIFICS.map((h) => ({ code: h, label: h }))}
+            options={activeTerms(vocab, 'honorific')}
             value={v.honorific} onChange={set('honorific')}
           />
           <TextField name="full_name" label="Name" required autoComplete="name" value={v.full_name} onChange={set('full_name')} error={err('full_name')} />
@@ -161,9 +203,9 @@ export default function ProfileForm() {
           options={activeTerms(vocab, 'discipline')}
           value={v.discipline} onChange={set('discipline')} error={err('discipline')}
         />
-        <TextField
-          name="skills" label="Skills and methods"
-          hint="Separate with commas, for example: shotgun metagenomics, R, trial design"
+        <TagField
+          source="skills" name="skills" label="Skills and methods"
+          hint="Your own words, separated by commas, for example: shotgun metagenomics, R, trial design"
           value={v.skills} onChange={set('skills')} error={err('skills')}
         />
         <TextArea
@@ -190,19 +232,21 @@ export default function ProfileForm() {
         />
       </Section>
 
-      <Section step={4} total={TOTAL} title="Contact and consent">
+      <Section step={4} total={TOTAL} title={isSubmit ? 'Contact and consent' : 'Contact'}>
         <TextField
           name="email" label="Email" type="email" required autoComplete="email"
           hint="Never shown on the site. We use it to pass on messages and so you can update your profile later."
           value={v.email} onChange={set('email')} error={err('email')}
         />
-        <ConsentBox name="consent_to_list" checked={v.consent_to_list} onChange={set('consent_to_list')} error={err('consent_to_list')}>
-          I agree to this profile being shown publicly in the skills directory once approved, and to receiving messages
-          passed on through the site.
-        </ConsentBox>
+        {isSubmit && (
+          <ConsentBox name="consent_to_list" checked={v.consent_to_list} onChange={set('consent_to_list')} error={err('consent_to_list')}>
+            I agree to this profile being shown publicly in the skills directory once approved, and to receiving messages
+            passed on through the site.
+          </ConsentBox>
+        )}
       </Section>
 
-      <Honeypot value={v.website} onChange={set('website')} />
+      {isSubmit && <Honeypot value={v.website} onChange={set('website')} />}
 
       <div className="space-y-4 border-t border-line pt-8">
         {submitError && (
@@ -210,10 +254,13 @@ export default function ProfileForm() {
             {submitError}
           </p>
         )}
-        <button type="submit" className="btn-primary w-full sm:w-auto" disabled={sending}>
-          {sending ? 'Sending…' : 'Submit for review'}
-        </button>
-        <PrivacyNotice what="profile" />
+        <div className="flex flex-wrap gap-3">
+          <button type="submit" className="btn-primary w-full sm:w-auto" disabled={sending}>
+            {sending ? 'Saving…' : isSubmit ? 'Submit for review' : 'Save changes'}
+          </button>
+          {onCancel && <button type="button" className="btn-secondary" onClick={onCancel}>Cancel</button>}
+        </div>
+        {isSubmit && <PrivacyNotice what="profile" />}
       </div>
     </form>
   );

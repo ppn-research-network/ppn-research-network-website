@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { loadVocab, labelFor, type Vocab } from '../lib/vocab';
-import { accessLevel } from '../lib/listings';
+import { accessBadge } from '../lib/listings';
 import { withBase } from '../lib/url';
 
 interface RecentDataset {
@@ -10,7 +10,7 @@ interface RecentDataset {
   lead_institution: string;
   state: string;
   study_design: string;
-  access_level: string;
+  access_levels: string[];
 }
 
 // Home page: the three most recently approved datasets. Renders nothing until
@@ -23,7 +23,7 @@ export default function RecentDatasets() {
     Promise.all([
       supabase
         .from('public_datasets')
-        .select('slug, title, lead_institution, state, study_design, access_level')
+        .select('slug, title, lead_institution, state, study_design, access_levels')
         .order('listed_at', { ascending: false })
         .limit(3),
       loadVocab(),
@@ -47,10 +47,10 @@ export default function RecentDatasets() {
       </div>
       <ul className="mt-6 grid gap-4 md:grid-cols-3">
         {rows.map((d) => {
-          const access = accessLevel(d.access_level);
+          const access = accessBadge(d.access_levels);
           return (
             <li key={d.slug} className="card relative p-5 hover:border-green">
-              <span className={`badge ${access.badgeClass}`}>{access.badge}</span>
+              <span className={`badge ${access.className}`}>{access.text}</span>
               <h3 className="mt-3 text-xl leading-snug">
                 <a
                   href={withBase(`/data/dataset/?slug=${encodeURIComponent(d.slug)}`)}

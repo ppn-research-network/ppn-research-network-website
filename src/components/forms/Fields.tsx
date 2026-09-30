@@ -1,5 +1,6 @@
-import { forwardRef, type ReactNode } from 'react';
+import { forwardRef, useEffect, useState, type ReactNode } from 'react';
 import { CONTACT_EMAIL } from '../../../site.config.mjs';
+import { supabase } from '../../lib/supabase';
 import { withBase } from '../../lib/url';
 
 // Shared building blocks for the submission forms. Every control has a
@@ -85,6 +86,66 @@ export function TextField({ name, label, hint, value, onChange, error, required,
         onChange={(e) => onChange(e.target.value)}
       />
       <FieldError name={name} error={error} />
+    </div>
+  );
+}
+
+// Terms already used in approved listings, to suggest while typing.
+function useUsedTerms(source: 'keywords' | 'skills') {
+  const [terms, setTerms] = useState<string[]>([]);
+  useEffect(() => {
+    const query = source === 'keywords'
+      ? supabase.from('public_datasets').select('keywords')
+      : supabase.from('public_profiles').select('skills');
+    query.then(({ data }) => {
+      const seen = new Map<string, string>();
+      for (const row of (data ?? []) as Record<string, string[]>[]) {
+        for (const t of row[source] ?? []) if (!seen.has(t.toLowerCase())) seen.set(t.toLowerCase(), t);
+      }
+      setTerms([...seen.values()].sort((a, b) => a.localeCompare(b)));
+    });
+  }, [source]);
+  return terms;
+}
+
+// Free-text, comma-separated terms, with suggestions from terms others have
+// already used. People can always type their own.
+export function TagField({ source, name, label, hint, value, onChange, error }: {
+  source: 'keywords' | 'skills';
+  name: string;
+  label: string;
+  hint?: ReactNode;
+  value: string;
+  onChange: (v: string) => void;
+  error?: string;
+}) {
+  const used = useUsedTerms(source);
+  const parts = value.split(',');
+  const current = parts[parts.length - 1].trim().toLowerCase();
+  const chosen = new Set(parts.slice(0, -1).map((p) => p.trim().toLowerCase()));
+  const suggestions = current.length >= 2
+    ? used.filter((t) => t.toLowerCase().includes(current) && !chosen.has(t.toLowerCase()) && t.toLowerCase() !== current).slice(0, 6)
+    : [];
+
+  const pick = (term: string) => {
+    const kept = parts.slice(0, -1).map((p) => p.trim()).filter(Boolean);
+    onChange([...kept, term].join(', ') + ', ');
+    document.getElementById(fieldId(name))?.focus();
+  };
+
+  return (
+    <div>
+      <TextField name={name} label={label} hint={hint} value={value} onChange={onChange} error={error} />
+      {suggestions.length > 0 && (
+        <div className="mt-2 flex flex-wrap items-center gap-2" aria-live="polite">
+          <span className="text-xs text-muted">Already used by others:</span>
+          {suggestions.map((s) => (
+            <button key={s} type="button" onClick={() => pick(s)} className="tag cursor-pointer hover:ring-1 hover:ring-green">
+              <span className="sr-only">Use </span>{s}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -223,31 +284,39 @@ export function RadioGroup({ name, legend, hint, value, onChange, error, require
   );
 }
 
-// Radio buttons shown as cards with a description (access level).
-export function RadioCards({ name, legend, value, onChange, error, options }: {
+// Tick boxes shown as cards with a description (access levels).
+export function CheckboxCards({ name, legend, hint, values, onChange, error, options, marker }: {
   name: string;
   legend: string;
-  value: string;
-  onChange: (v: string) => void;
+  hint?: ReactNode;
+  values: string[];
+  onChange: (v: string[]) => void;
   error?: string;
   options: { code: string; label: string; description: string }[];
+  marker?: (code: string) => ReactNode;   // e.g. "(current)" on owner edits
 }) {
+  const toggle = (code: string, on: boolean) =>
+    onChange(on ? [...values, code] : values.filter((v) => v !== code));
   return (
-    <fieldset id={fieldId(name)} tabIndex={-1} aria-describedby={describedBy(name, undefined, error)}>
+    <fieldset id={fieldId(name)} tabIndex={-1} aria-describedby={describedBy(name, hint, error)}>
       <legend className="field-label">{legend}</legend>
+      <Hint name={name}>{hint}</Hint>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        {options.map((o) => (
-          <label
-            key={o.code}
-            className={`choice rounded-lg border p-4 ${value === o.code ? 'border-green bg-tag/60 ring-1 ring-green' : 'border-line bg-card'}`}
-          >
-            <input type="radio" name={name} value={o.code} checked={value === o.code} onChange={() => onChange(o.code)} />
-            <span>
-              <span className="block font-semibold">{o.label}</span>
-              <span className="mt-0.5 block text-sm text-muted">{o.description}</span>
-            </span>
-          </label>
-        ))}
+        {options.map((o) => {
+          const on = values.includes(o.code);
+          return (
+            <label
+              key={o.code}
+              className={`choice rounded-lg border p-4 ${on ? 'border-green bg-tag/60 ring-1 ring-green' : 'border-line bg-card'}`}
+            >
+              <input type="checkbox" checked={on} onChange={(e) => toggle(o.code, e.target.checked)} />
+              <span>
+                <span className="block font-semibold">{o.label} {marker?.(o.code)}</span>
+                <span className="mt-0.5 block text-sm text-muted">{o.description}</span>
+              </span>
+            </label>
+          );
+        })}
       </div>
       <FieldError name={name} error={error} />
     </fieldset>

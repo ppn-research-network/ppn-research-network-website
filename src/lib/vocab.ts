@@ -11,7 +11,8 @@ export type VocabList =
   | 'discipline'
   | 'career_stage'
   | 'looking_for'
-  | 'open_to';
+  | 'open_to'
+  | 'honorific';
 
 export interface VocabTerm {
   list: VocabList;
@@ -32,6 +33,7 @@ const EMPTY: Vocab = {
   career_stage: [],
   looking_for: [],
   open_to: [],
+  honorific: [],
 };
 
 export async function loadVocab(): Promise<Vocab> {
@@ -54,6 +56,25 @@ export function activeTerms(vocab: Vocab, list: VocabList): VocabTerm[] {
 // Label for a stored code, including hidden (inactive) options.
 export function labelFor(vocab: Vocab, list: VocabList, code: string): string {
   return vocab[list].find((t) => t.code === code)?.label ?? code;
+}
+
+export interface FilterOption {
+  key: string;
+  label: string;
+  codes: string[];
+}
+
+// Directory filter options: terms that share a filter_group become one option
+// (e.g. "Randomised or crossover trial" covers both trial codes).
+export function filterOptions(vocab: Vocab, list: VocabList): FilterOption[] {
+  const options: FilterOption[] = [];
+  for (const term of activeTerms(vocab, list)) {
+    const key = term.filter_group ?? term.code;
+    const existing = options.find((o) => o.key === key);
+    if (existing) existing.codes.push(term.code);
+    else options.push({ key, label: term.filter_group ?? term.label, codes: [term.code] });
+  }
+  return options;
 }
 
 export function useVocab() {

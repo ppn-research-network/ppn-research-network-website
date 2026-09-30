@@ -20,6 +20,7 @@ const pageTitle = title ? `${title} · ${NETWORK_NAME}` : NETWORK_NAME;
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
     <title>{pageTitle}</title>
+    <slot name="head" />
   </head>
   <body class="min-h-screen bg-paper text-ink antialiased">
     <slot />

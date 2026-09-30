@@ -2,16 +2,17 @@ import { useRef, useState, type SubmitEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useVocab, activeTerms } from '../../lib/vocab';
 import { ACCESS_LEVELS, CONSENT_OPTIONS, STATES } from '../../lib/listings';
+import type { AdminDataset } from '../../lib/types';
 import { withBase } from '../../lib/url';
 import {
-  CheckboxGroup, ConsentBox, EMAIL_RE, ErrorSummary, Honeypot, LoadFailed, PrivacyNotice,
-  RadioCards, RadioGroup, Section, SelectField, TextArea, TextField,
+  CheckboxCards, CheckboxGroup, ConsentBox, EMAIL_RE, ErrorSummary, Honeypot, LoadFailed, PrivacyNotice,
+  RadioGroup, Section, SelectField, TagField, TextArea, TextField,
   friendlyError, lengthError, splitList, urlError, type Errors,
 } from './Fields';
 
 const TOTAL = 5;
 
-const initial = {
+const blank = {
   title: '',
   summary: '',
   keywords: '',
@@ -26,7 +27,7 @@ const initial = {
   data_types_other: '',
   biospecimens: '',
   biospecimens_details: '',
-  access_level: '',
+  access_levels: [] as string[],
   access_requirements: [] as string[],
   access_notes: '',
   consent_secondary_use: '',
@@ -40,7 +41,10 @@ const initial = {
   website: '',
 };
 
-type Values = typeof initial;
+export type DatasetValues = typeof blank;
+
+// The columns a dataset form saves, in database form (blank text becomes null).
+export type DatasetListing = ReturnType<typeof toListing>;
 
 const LABELS: Record<string, string> = {
   title: 'Dataset title',
@@ -57,8 +61,8 @@ const LABELS: Record<string, string> = {
   data_types_other: 'Other data types',
   biospecimens: 'Biospecimens',
   biospecimens_details: 'Biospecimen details',
-  access_level: 'Access level',
-  access_notes: 'Other access details',
+  access_levels: 'Access level',
+  access_notes: 'Access details',
   consent_secondary_use: 'Consent for secondary use',
   repository_url: 'Repository',
   publication: 'Key publication',
@@ -77,7 +81,70 @@ function publicationLink(value: string): string {
   return v;
 }
 
-function validate(v: Values): Errors {
+const orNull = (s: string) => (s.trim() ? s.trim() : null);
+
+export function toListing(v: DatasetValues) {
+  const size = v.sample_size.replace(/[,\s]/g, '');
+  return {
+    title: v.title.trim(),
+    summary: v.summary.trim(),
+    keywords: splitList(v.keywords),
+    study_design: v.study_design,
+    years_collected: orNull(v.years_collected),
+    sample_size: size ? Number(size) : null,
+    age_range: orNull(v.age_range),
+    population: orNull(v.population),
+    lead_institution: v.lead_institution.trim(),
+    state: v.state,
+    data_types: v.data_types,
+    data_types_other: v.data_types.includes('other') ? orNull(v.data_types_other) : null,
+    biospecimens: v.biospecimens === 'yes',
+    biospecimens_details: v.biospecimens === 'yes' ? orNull(v.biospecimens_details) : null,
+    access_levels: v.access_levels,
+    access_requirements: v.access_requirements,
+    access_notes: orNull(v.access_notes),
+    consent_secondary_use: v.consent_secondary_use,
+    repository_url: orNull(v.repository_url),
+    publication_url: orNull(publicationLink(v.publication)),
+    trial_registration: orNull(v.trial_registration),
+    contact_name: v.contact_name.trim(),
+    contact_role: v.contact_role.trim(),
+  };
+}
+
+// Fill the form from a stored dataset (admin and owner edits).
+export function fromDataset(d: AdminDataset, email: string): DatasetValues {
+  return {
+    ...blank,
+    title: d.title,
+    summary: d.summary,
+    keywords: d.keywords.join(', '),
+    study_design: d.study_design,
+    years_collected: d.years_collected ?? '',
+    sample_size: d.sample_size != null ? String(d.sample_size) : '',
+    age_range: d.age_range ?? '',
+    population: d.population ?? '',
+    lead_institution: d.lead_institution,
+    state: d.state,
+    data_types: d.data_types,
+    data_types_other: d.data_types_other ?? '',
+    biospecimens: d.biospecimens ? 'yes' : 'no',
+    biospecimens_details: d.biospecimens_details ?? '',
+    access_levels: d.access_levels,
+    access_requirements: d.access_requirements,
+    access_notes: d.access_notes ?? '',
+    consent_secondary_use: d.consent_secondary_use,
+    repository_url: d.repository_url ?? '',
+    publication: d.publication_url ?? '',
+    trial_registration: d.trial_registration ?? '',
+    contact_name: d.contact_name,
+    contact_role: d.contact_role,
+    email,
+    consent_to_list: true,
+  };
+}
+
+function validate(v: DatasetValues, needsConsent: boolean): Errors {
   const e: Errors = {};
   const set = (name: string, msg?: string) => { if (msg) e[name] = msg; };
 
@@ -100,8 +167,12 @@ function validate(v: Values): Errors {
   if (!v.biospecimens) e.biospecimens = 'Choose yes or no';
   set('biospecimens_details', lengthError(v.biospecimens_details, 0, 300, ''));
 
-  if (!v.access_level) e.access_level = 'Choose an access level';
-  set('access_notes', lengthError(v.access_notes, 0, 1000, ''));
+  if (v.access_levels.length === 0) e.access_levels = 'Tick at least one access level';
+  if (v.access_levels.length > 1 && !v.access_notes.trim()) {
+    e.access_notes = 'Explain which parts of the data are available at which access level';
+  } else {
+    set('access_notes', lengthError(v.access_notes, 0, 1000, ''));
+  }
   if (!v.consent_secondary_use) e.consent_secondary_use = 'Choose yes, partly or unsure';
   set('repository_url', urlError(v.repository_url));
   set('publication', urlError(publicationLink(v.publication)) && 'Enter a DOI (for example 10.1234/abcd) or a full web address');
@@ -110,29 +181,40 @@ function validate(v: Values): Errors {
   set('contact_name', lengthError(v.contact_name, 2, 120, 'a contact name'));
   set('contact_role', lengthError(v.contact_role, 2, 120, 'the contact’s role'));
   if (!EMAIL_RE.test(v.email.trim())) e.email = 'Enter an email address, like name@example.edu.au';
-  if (!v.consent_to_list) e.consent_to_list = 'Tick the box to confirm the dataset can be listed';
+  if (needsConsent && !v.consent_to_list) e.consent_to_list = 'Tick the box to confirm the dataset can be listed';
   return e;
 }
 
-export default function DatasetForm() {
+interface Props {
+  // 'submit': public form, sends through submit_dataset.
+  // 'admin': edit an existing listing; onSave does the saving.
+  mode?: 'submit' | 'admin';
+  initial?: DatasetValues;
+  onSave?: (listing: DatasetListing, email: string) => Promise<string | null>;
+  onCancel?: () => void;
+}
+
+export default function DatasetForm({ mode = 'submit', initial = blank, onSave, onCancel }: Props) {
   const { vocab, failed } = useVocab();
-  const [v, setV] = useState<Values>(initial);
+  const [v, setV] = useState<DatasetValues>(initial);
   const [errors, setErrors] = useState<Errors>({});
   const [submitError, setSubmitError] = useState('');
   const [sending, setSending] = useState(false);
   const summaryRef = useRef<HTMLDivElement>(null);
   const submitErrorRef = useRef<HTMLParagraphElement>(null);
+  const isSubmit = mode === 'submit';
 
   if (failed) return <LoadFailed />;
   if (!vocab) return <p className="card p-6 text-muted" role="status">Loading the form…</p>;
 
-  const set = <K extends keyof Values>(key: K) => (value: Values[K]) => setV((prev) => ({ ...prev, [key]: value }));
+  const set = <K extends keyof DatasetValues>(key: K) => (value: DatasetValues[K]) => setV((prev) => ({ ...prev, [key]: value }));
   const err = (name: string) => errors[name];
+  const mixed = v.access_levels.length > 1;
 
   async function onSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitError('');
-    const found = validate(v);
+    const found = validate(v, isSubmit);
     setErrors(found);
     if (Object.keys(found).length > 0) {
       requestAnimationFrame(() => summaryRef.current?.focus());
@@ -140,45 +222,26 @@ export default function DatasetForm() {
     }
 
     setSending(true);
-    const listing = {
-      title: v.title,
-      summary: v.summary,
-      keywords: splitList(v.keywords),
-      study_design: v.study_design,
-      years_collected: v.years_collected,
-      sample_size: v.sample_size.replace(/[,\s]/g, ''),
-      age_range: v.age_range,
-      population: v.population,
-      lead_institution: v.lead_institution,
-      state: v.state,
-      data_types: v.data_types,
-      data_types_other: v.data_types.includes('other') ? v.data_types_other : '',
-      biospecimens: v.biospecimens === 'yes',
-      biospecimens_details: v.biospecimens === 'yes' ? v.biospecimens_details : '',
-      access_level: v.access_level,
-      access_requirements: v.access_requirements,
-      access_notes: v.access_notes,
-      consent_secondary_use: v.consent_secondary_use,
-      repository_url: v.repository_url,
-      publication_url: publicationLink(v.publication),
-      trial_registration: v.trial_registration,
-      contact_name: v.contact_name,
-      contact_role: v.contact_role,
-      consent_to_list: v.consent_to_list,
-    };
-    const { error } = await supabase.rpc('submit_dataset', {
-      p_listing: listing,
-      p_email: v.email.trim(),
-      p_website: v.website,
-    });
+    const listing = toListing(v);
+    let problem: string | null = null;
+    if (isSubmit) {
+      const { error } = await supabase.rpc('submit_dataset', {
+        p_listing: { ...listing, consent_to_list: v.consent_to_list },
+        p_email: v.email.trim(),
+        p_website: v.website,
+      });
+      if (error) problem = friendlyError(error);
+    } else if (onSave) {
+      problem = await onSave(listing, v.email.trim());
+    }
     setSending(false);
 
-    if (error) {
-      setSubmitError(friendlyError(error));
+    if (problem) {
+      setSubmitError(problem);
       requestAnimationFrame(() => submitErrorRef.current?.focus());
       return;
     }
-    window.location.href = withBase('/submit/thanks/?type=dataset');
+    if (isSubmit) window.location.href = withBase('/submit/thanks/?type=dataset');
   }
 
   return (
@@ -192,9 +255,9 @@ export default function DatasetForm() {
           hint="Two or three sentences. Don't include anything that could identify a participant."
           value={v.summary} onChange={set('summary')} error={err('summary')}
         />
-        <TextField
-          name="keywords" label="Keywords"
-          hint="Separate with commas, for example: Mediterranean diet, TMAO, older adults"
+        <TagField
+          source="keywords" name="keywords" label="Keywords"
+          hint="Your own words, separated by commas, for example: Mediterranean diet, TMAO, older adults"
           value={v.keywords} onChange={set('keywords')} error={err('keywords')}
         />
       </Section>
@@ -241,10 +304,11 @@ export default function DatasetForm() {
       </Section>
 
       <Section step={4} total={TOTAL} title="Access">
-        <RadioCards
-          name="access_level" legend="Access level"
+        <CheckboxCards
+          name="access_levels" legend="Access level"
+          hint="Tick more than one if different parts of the data are shared differently."
           options={ACCESS_LEVELS.map((a) => ({ code: a.code, label: a.label, description: a.description }))}
-          value={v.access_level} onChange={set('access_level')} error={err('access_level')}
+          values={v.access_levels} onChange={set('access_levels')} error={err('access_levels')}
         />
         <CheckboxGroup
           name="access_requirements" legend="What will people need?"
@@ -252,8 +316,11 @@ export default function DatasetForm() {
           values={v.access_requirements} onChange={set('access_requirements')}
         />
         <TextArea
-          name="access_notes" label="Anything else people should know about access?" maxLength={1000} rows={3}
-          hint="For example, which data use agreement applies, or who reviews proposals."
+          name="access_notes" required={mixed} maxLength={1000} rows={3}
+          label={mixed ? 'Which parts of the data are available at which level?' : 'Anything else people should know about access?'}
+          hint={mixed
+            ? 'For example: dietary and anthropometric data are open; metabolomics and microbiome data are available on request.'
+            : 'For example, which data use agreement applies, or who reviews proposals.'}
           value={v.access_notes} onChange={set('access_notes')} error={err('access_notes')}
         />
         <RadioGroup
@@ -280,13 +347,15 @@ export default function DatasetForm() {
           hint="Never shown on the site. We use it to pass on messages and so you can update the listing later."
           value={v.email} onChange={set('email')} error={err('email')}
         />
-        <ConsentBox name="consent_to_list" checked={v.consent_to_list} onChange={set('consent_to_list')} error={err('consent_to_list')}>
-          I am the custodian of this dataset, or have their permission to list it, and I agree to this description being
-          shown publicly once approved.
-        </ConsentBox>
+        {isSubmit && (
+          <ConsentBox name="consent_to_list" checked={v.consent_to_list} onChange={set('consent_to_list')} error={err('consent_to_list')}>
+            I am the custodian of this dataset, or have their permission to list it, and I agree to this description being
+            shown publicly once approved.
+          </ConsentBox>
+        )}
       </Section>
 
-      <Honeypot value={v.website} onChange={set('website')} />
+      {isSubmit && <Honeypot value={v.website} onChange={set('website')} />}
 
       <div className="space-y-4 border-t border-line pt-8">
         {submitError && (
@@ -294,10 +363,13 @@ export default function DatasetForm() {
             {submitError}
           </p>
         )}
-        <button type="submit" className="btn-primary w-full sm:w-auto" disabled={sending}>
-          {sending ? 'Sending…' : 'Submit for review'}
-        </button>
-        <PrivacyNotice what="dataset" />
+        <div className="flex flex-wrap gap-3">
+          <button type="submit" className="btn-primary w-full sm:w-auto" disabled={sending}>
+            {sending ? 'Saving…' : isSubmit ? 'Submit for review' : 'Save changes'}
+          </button>
+          {onCancel && <button type="button" className="btn-secondary" onClick={onCancel}>Cancel</button>}
+        </div>
+        {isSubmit && <PrivacyNotice what="dataset" />}
       </div>
     </form>
   );

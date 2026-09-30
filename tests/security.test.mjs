@@ -51,7 +51,7 @@ function validDataset(title) {
     state: 'NSW',
     data_types: ['dietary_intake'],
     biospecimens: false,
-    access_level: 'controlled',
+    access_levels: ['controlled'],
     access_requirements: ['ethics'],
     consent_secondary_use: 'unsure',
     contact_name: 'Test Person',
@@ -93,7 +93,7 @@ for (const view of ['public_datasets', 'public_profiles']) {
     assert.equal(error, null, error?.message);
     for (const row of data) {
       for (const [column, value] of Object.entries(row)) {
-        assert.doesNotMatch(column, /email|status|review_note|approved_by|reviewed_by|consent_to_list/i,
+        assert.doesNotMatch(column, /email|status|review_note|approved_by|reviewed_by|consent_to_list|is_sample/i,
           `${view} exposes column ${column}`);
         assert.doesNotMatch(JSON.stringify(value ?? ''), EMAIL_PATTERN,
           `${view} row ${row.id} has an email-like value in ${column}`);
@@ -211,4 +211,32 @@ test('visitors are not admins', async () => {
   const { data, error } = await db.rpc('is_admin');
   assert.equal(error, null, error?.message);
   assert.equal(data, false);
+});
+
+test('the public views contain published listings to check (samples loaded)', async () => {
+  const { data } = await db.from('public_datasets').select('id');
+  assert.ok(data.length > 0, 'no published datasets: run npm run samples:add so the email checks above have rows to inspect');
+});
+
+test('a dataset with several access levels needs an explanation', async () => {
+  const listing = { ...validDataset(`[Security test] mixed ${run}`), access_levels: ['open', 'controlled'] };
+  const { error } = await db.rpc('submit_dataset', { p_listing: listing, p_email: testEmail });
+  assert.ok(error, 'mixed access without an explanation was accepted');
+});
+
+test('visitors can message a published listing, but cannot read messages back', async () => {
+  const { data: target } = await db.from('public_datasets').select('id').limit(1).single();
+  const { error } = await db.rpc('send_contact_request', {
+    p_target_type: 'dataset',
+    p_target_id: target.id,
+    p_name: 'Security Test',
+    p_email: testEmail,
+    p_institution: 'Test institution',
+    p_message: 'Automated security test message. Safe to delete.',
+    p_acknowledged: true,
+  });
+  assert.equal(error, null, error?.message);
+
+  const read = await db.from('contact_requests').select('*').eq('sender_email', testEmail);
+  assertDenied(read.error, 'reading contact requests back');
 });
