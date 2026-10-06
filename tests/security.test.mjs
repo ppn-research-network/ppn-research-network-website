@@ -33,6 +33,8 @@ function assertDenied(error, what) {
 }
 
 const PRIVATE_TABLES = [
+  'news_items',
+  'listing_views',
   'datasets',
   'dataset_contacts',
   'profiles',
@@ -239,4 +241,22 @@ test('visitors can message a published listing, but cannot read messages back', 
 
   const read = await db.from('contact_requests').select('*').eq('sender_email', testEmail);
   assertDenied(read.error, 'reading contact requests back');
+});
+
+test('published news has no submitter details, and visitors cannot post news', async () => {
+  const { data, error } = await db.from('listed_news').select('*').limit(5);
+  assert.equal(error, null, error?.message);
+  for (const row of data) {
+    for (const column of Object.keys(row)) assert.doesNotMatch(column, /email|submitted|status|review/i, `listed_news exposes ${column}`);
+  }
+  const post = await db.rpc('submit_news', { p: { kind: 'news', title: 'Visitor post', summary: 'This should be refused for visitors.', url: 'https://example.org' } });
+  assertDenied(post.error, 'a visitor posting news');
+});
+
+test('visitors can record a view of a published listing but cannot read the counts', async () => {
+  const { data: target } = await db.from('public_datasets').select('id').limit(1).single();
+  const { error } = await db.rpc('record_view', { p_kind: 'dataset', p_id: target.id });
+  assert.equal(error, null, error?.message);
+  assertDenied((await db.from('listing_views').select('*')).error, 'reading view counts');
+  assertDenied((await db.rpc('roll_up_old_views')).error, 'running the view clean-up');
 });

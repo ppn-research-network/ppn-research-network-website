@@ -3,7 +3,7 @@ import SiteLayout from '../../layouts/SiteLayout.astro';
 import { withBase } from '../../lib/url';
 import { CONTACT_EMAIL, NETWORK_NAME } from '../../../site.config.mjs';
 
-const LAST_UPDATED = '30 September 2026';
+const LAST_UPDATED = '6 October 2026';
 ---
 
 <SiteLayout title="Privacy and terms">
@@ -52,6 +52,9 @@ const LAST_UPDATED = '30 September 2026';
           conditions of use you provide.
         </li>
         <li>
+          <strong>News and events posts:</strong> the details of the item you share, and your name and email address.
+        </li>
+        <li>
           <strong>Sign-in:</strong> your email address, and the date and time you last signed in.
         </li>
       </ul>
@@ -93,6 +96,10 @@ const LAST_UPDATED = '30 September 2026';
       <p>
         <strong>Member resources</strong> are visible only to approved members, who see each resource and the name of the
         person who shared it. The sharer’s email address is visible only to network administrators.
+      </p>
+      <p>
+        <strong>Approved news and events posts are public</strong>, unless marked members only. The name and email address
+        of the person who posted them are visible only to network administrators.
       </p>
       <p>
         Pending submissions, proposed updates, membership applications and internal review notes are never published.
@@ -139,6 +146,15 @@ const LAST_UPDATED = '30 September 2026';
         are made to font services.
       </p>
       <p>
+        We count how many times each dataset and profile page is viewed, and show these counts only to the listing’s
+        owner and to administrators. The count does not identify anyone. So that the same visit isn’t counted twice in a
+        day, your browser keeps a small note of the listings you have viewed that day.
+      </p>
+      <p>
+        For YouTube recordings shared with members, our automated task copies the video’s thumbnail image from YouTube
+        into our own storage, so your browser does not contact YouTube when you view the Resources page.
+      </p>
+      <p>
         Our hosting providers (GitHub and Supabase) may record technical information, such as IP addresses and access
         logs, to operate and secure their services.
       </p>
@@ -149,6 +165,8 @@ const LAST_UPDATED = '30 September 2026';
         <li><strong>Rejected and withdrawn listings</strong> are deleted automatically 12 months after the decision or withdrawal.</li>
         <li><strong>Membership records</strong> are kept while the membership is active. Declined requests and ended memberships are deleted 12 months later.</li>
         <li><strong>Messages sent through the website</strong> are deleted from our database after 12 months.</li>
+        <li><strong>News and events posts</strong> stay in the public archive once published. Rejected and removed posts are deleted 12 months later.</li>
+        <li><strong>View counts</strong> contain no personal information and are kept while the listing exists.</li>
         <li><strong>Copies of emails</strong> in the network’s email account are deleted after about 12 months.</li>
         <li><strong>Sign-in accounts</strong> (your email address and sign-in dates) are kept until you ask us to remove them.</li>
         <li><strong>Backups</strong> are kept for about 8 weeks, then permanently removed.</li>
@@ -221,6 +239,14 @@ const LAST_UPDATED = '30 September 2026';
       <p>
         Use the contact forms only for genuine enquiries relevant to the network. We may block messages that are
         unsolicited marketing, abusive or automated.
+      </p>
+
+      <h3>News and events posts</h3>
+      <p>
+        The person posting is responsible for the accuracy of the item and for having permission to share it. Study
+        recruitment posts must have current ethics approval, show the approval number and approving committee, and direct
+        people to the study’s own page. The network does not recruit participants or collect their details. We may edit,
+        decline or remove any post.
       </p>
 
       <h3>Members and resources</h3>

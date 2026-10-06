@@ -1,0 +1,19 @@
+---
+import SiteLayout from '../../../layouts/SiteLayout.astro';
+import NewsForm from '../../../components/news/NewsForm.tsx';
+---
+
+<SiteLayout title="Share news or an event" current="news">
+  <div class="mx-auto max-w-6xl px-5 py-10 md:py-14">
+    <h1 class="text-4xl sm:text-5xl">Share news or an event</h1>
+    <p class="mt-4 max-w-2xl text-[#33403a] sm:text-lg">
+      Tell the network about a new study, an event or conference, a study that is recruiting, or an opportunity. An admin
+      checks every post before it appears.
+    </p>
+    <div class="mt-8">
+      <NewsForm client:only="react">
+        <p slot="fallback" class="min-h-[90vh] text-muted">Checking your membership…</p>
+      </NewsForm>
+    </div>
+  </div>
+</SiteLayout>

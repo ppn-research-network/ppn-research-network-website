@@ -21,8 +21,12 @@ export const INSTITUTION_COUNT = 'more than 10';
 
 // Who can become a member (shown on the membership form).
 // Change this one line when membership opens internationally.
+// The invitation to join, shown on the home page, About page and membership form.
+export const MEMBERSHIP_INVITATION =
+  'Membership is currently free. Members can access webinar recordings and shared resources, including ethics templates, data agreements and protocols developed or approved through the network. In return, we ask members to contribute by sharing resources, suggesting ideas, highlighting local and institutional news and events, and helping us work towards our shared goals.';
+
 export const MEMBERSHIP_ELIGIBILITY =
-  'Membership is free and currently open to researchers, students, clinicians and practitioners working in nutrition or related fields in Australia. We plan to welcome international members in future.';
+  'Membership is currently open to researchers, students, clinicians and practitioners working in nutrition or related fields in Australia. We plan to welcome international members in future.';
 
 // 'test' during the quiet launch to colleagues: shows a "Test version" banner and
 // asks search engines not to list the site. Change to 'live' at the public launch.

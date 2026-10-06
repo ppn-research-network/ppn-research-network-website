@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { makeThumbnail } from '../../lib/images';
 import { supabase } from '../../lib/supabase';
 import { labelFor, type Vocab } from '../../lib/vocab';
 import { formatDate } from '../../lib/listings';
@@ -170,6 +171,7 @@ function ResourceCard({ r, vocab, reload }: { r: AdminResource; vocab: Vocab; re
       </div>
       {r.description && <p className="mt-3 text-sm text-[#33403a]">{r.description}</p>}
       {r.licence && <p className="mt-1 text-sm text-[#33403a]"><span className="font-semibold">Licence or conditions:</span> {r.licence}</p>}
+      {r.category === 'recording' && <ThumbnailEditor r={r} reload={reload} />}
       {(r.presenter || r.duration || r.event_date) && (
         <p className="mt-1 text-sm text-muted">{[r.presenter, r.duration, r.event_date && formatDate(r.event_date)].filter(Boolean).join(' · ')}</p>
       )}
@@ -200,5 +202,58 @@ function ResourceCard({ r, vocab, reload }: { r: AdminResource; vocab: Vocab; re
       {(r.status === 'rejected' || r.status === 'removed') && <button type="button" className="btn-secondary mt-3 !min-h-9 !py-1" onClick={() => change('approved')}>Share after all</button>}
       {problem && <p role="alert" className="mt-2 text-sm font-semibold text-danger">{problem}</p>}
     </li>
+  );
+}
+
+// Recordings: show the thumbnail and let an admin add or replace it (e.g. for
+// Zoom or Vimeo recordings; YouTube ones are fetched automatically).
+function ThumbnailEditor({ r, reload }: { r: AdminResource; reload: () => Promise<void> }) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState('');
+  const isYouTube = /(?:youtube\.com|youtu\.be)\//i.test(r.url ?? '');
+
+  useEffect(() => {
+    setUrl(null);
+    if (!r.thumbnail_path) return;
+    supabase.storage.from('resources').createSignedUrl(r.thumbnail_path, 3600).then(({ data }) => setUrl(data?.signedUrl ?? null));
+  }, [r.thumbnail_path]);
+
+  const upload = async (file: File | undefined) => {
+    if (!file) return;
+    setBusy(true);
+    setProblem('');
+    try {
+      const blob = await makeThumbnail(file);
+      const path = `thumbnails/${r.id}-${Date.now()}.jpg`;
+      const up = await supabase.storage.from('resources').upload(path, blob, { contentType: 'image/jpeg' });
+      if (up.error) throw up.error;
+      const { data, error } = await supabase.from('resources').update({ thumbnail_path: path }).eq('id', r.id).select('id');
+      if (error || !data?.length) throw error ?? new Error('not saved');
+      if (r.thumbnail_path) await supabase.storage.from('resources').remove([r.thumbnail_path]);
+      await reload();
+    } catch (err) {
+      setProblem(err instanceof Error && err.message.startsWith('Choose') ? err.message : 'The image could not be saved. Try a different JPG or PNG.');
+    }
+    setBusy(false);
+  };
+
+  return (
+    <div className="mt-4 flex flex-col gap-3 rounded-xl bg-band p-4 sm:flex-row sm:items-center">
+      <div className="aspect-video w-40 shrink-0 overflow-hidden rounded-lg bg-green">
+        {url && <img src={url} alt="Current thumbnail" className="h-full w-full object-cover" />}
+      </div>
+      <div className="text-sm">
+        <p className="font-semibold">Thumbnail</p>
+        <p className="text-muted">
+          {r.thumbnail_path ? 'Shown on the recording’s card.' : isYouTube ? 'None yet: the YouTube thumbnail is added automatically within an hour of approval.' : 'None: the card shows a coloured panel.'}
+        </p>
+        <label className="btn-secondary mt-2 !min-h-9 cursor-pointer !py-1">
+          {busy ? 'Saving…' : r.thumbnail_path ? 'Replace image' : 'Add image'}
+          <input type="file" accept=".jpg,.jpeg,.png,.webp" className="sr-only" disabled={busy} onChange={(e) => upload(e.target.files?.[0])} />
+        </label>
+        {problem && <p role="alert" className="mt-1 font-semibold text-danger">{problem}</p>}
+      </div>
+    </div>
   );
 }

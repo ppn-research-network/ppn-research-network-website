@@ -27,3 +27,6 @@ design/
 
 # editor folders
 .idea/
+
+# Original logo artwork (only small web copies in public/ are uploaded)
+/*.png

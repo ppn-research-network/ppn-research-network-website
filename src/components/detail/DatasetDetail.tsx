@@ -6,6 +6,7 @@ import type { PublicDataset } from '../../lib/types';
 import { withBase } from '../../lib/url';
 import { NETWORK_NAME } from '../../../site.config.mjs';
 import ContactForm from './ContactForm';
+import { recordView } from '../../lib/views';
 
 export default function DatasetDetail() {
   const [d, setD] = useState<PublicDataset | null>(null);
@@ -21,6 +22,7 @@ export default function DatasetDetail() {
         setVocab(v);
         if (!data) return setStatus('missing');
         setD(data as PublicDataset);
+        recordView('dataset', (data as PublicDataset).id);
         supabase.from('public_listing_history').select('id, happened_at, summary')
           .eq('dataset_id', (data as PublicDataset).id).order('happened_at', { ascending: false })
           .then(({ data: h }) => setHistory(h ?? []));

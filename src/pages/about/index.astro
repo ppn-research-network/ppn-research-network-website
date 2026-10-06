@@ -1,7 +1,7 @@
 ---
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import { withBase } from '../../lib/url';
-import { INSTITUTION_COUNT, NETWORK_NAME, REVIEW_TIME } from '../../../site.config.mjs';
+import { INSTITUTION_COUNT, MEMBERSHIP_INVITATION, NETWORK_NAME, REVIEW_TIME } from '../../../site.config.mjs';
 ---
 
 <SiteLayout title="About" current="about">
@@ -87,11 +87,16 @@ import { INSTITUTION_COUNT, NETWORK_NAME, REVIEW_TIME } from '../../../site.conf
         dataset or an individual.
       </p>
 
+      <h2>Membership</h2>
+      <p>{MEMBERSHIP_INVITATION}</p>
+      <p><a href={withBase('/resources/')}>Request membership</a></p>
+
       <h2>Get involved</h2>
       <ul>
         <li><a href={withBase('/submit/')}><strong>Submit a dataset listing</strong></a> to help others discover your data and discuss potential collaboration.</li>
         <li><a href={withBase('/submit/profile/')}><strong>Join the skills directory</strong></a> to share your expertise and connect with collaborators.</li>
         <li><a href={withBase('/resources/')}><strong>Become a member</strong></a> to access shared resources and learning opportunities, including recordings, templates and protocols.</li>
+        <li><a href={withBase('/news/')}><strong>Share news and events</strong></a> such as new studies, conferences and opportunities (members).</li>
         <li><a href={withBase('/contact/')}><strong>Contact the leadership committee</strong></a> with questions, suggestions or ideas for the network.</li>
       </ul>
     </div>

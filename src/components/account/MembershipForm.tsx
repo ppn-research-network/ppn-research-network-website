@@ -2,7 +2,7 @@ import { useRef, useState, type SubmitEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useVocab, activeTerms } from '../../lib/vocab';
 import { withBase } from '../../lib/url';
-import { MEMBERSHIP_ELIGIBILITY, REVIEW_TIME } from '../../../site.config.mjs';
+import { MEMBERSHIP_ELIGIBILITY, MEMBERSHIP_INVITATION, REVIEW_TIME } from '../../../site.config.mjs';
 import {
   EMAIL_RE, ErrorSummary, Honeypot, SelectField, TextArea, TextField, friendlyError, lengthError, type Errors,
 } from '../forms/Fields';
@@ -61,6 +61,7 @@ export default function MembershipForm({ lockedEmail }: { lockedEmail?: string }
         </div>
       ) : (
         <form noValidate onSubmit={onSubmit} className="relative mt-3 space-y-5">
+          <p className="text-sm text-muted">{MEMBERSHIP_INVITATION}</p>
           <p className="text-sm text-muted">{MEMBERSHIP_ELIGIBILITY} An admin approves each request.</p>
           <ErrorSummary ref={summaryRef} errors={errors} labels={{ full_name: 'Name', email: 'Work email', institution: 'Institution', country: 'Country', role: 'Role', reason: 'How you will use the network', agreed_code: 'Code of conduct' }} />
           <div className="grid gap-5 sm:grid-cols-2">

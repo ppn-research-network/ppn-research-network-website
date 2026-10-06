@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { AdminDataset, AdminProfile, ListingStatus } from '../../lib/types';
+import type { AdminNews } from './NewsAdmin';
 
 // Everything the dashboard shows, loaded with the signed-in admin's rights.
 // The database's security rules only return rows to admins.
@@ -13,6 +14,7 @@ export interface ContactRequest {
   sender_email: string;
   sender_institution: string | null;
   message: string;
+  topic: string | null;
   status: 'queued' | 'sent' | 'failed' | 'blocked' | 'skipped';
   attempts: number;
   last_error: string | null;
@@ -58,6 +60,7 @@ export interface AdminResource {
   file_size: number | null;
   description: string | null;
   licence: string | null;
+  thumbnail_path: string | null;
   presenter: string | null;
   event_date: string | null;
   duration: string | null;
@@ -77,6 +80,8 @@ export interface AdminData {
   members: Member[];
   revisions: Revision[];
   resources: AdminResource[];
+  news: AdminNews[];
+  views: { dataset_id: string | null; profile_id: string | null; day: string; views: number }[];
 }
 
 export function useAdminData() {
@@ -84,7 +89,7 @@ export function useAdminData() {
   const [error, setError] = useState('');
 
   const reload = useCallback(async () => {
-    const [d, dc, p, pc, r, m, rv, rs] = await Promise.all([
+    const [d, dc, p, pc, r, m, rv, rs, nw, vw] = await Promise.all([
       supabase.from('datasets').select('*').order('submitted_at', { ascending: false }),
       supabase.from('dataset_contacts').select('dataset_id, email'),
       supabase.from('profiles').select('*').order('submitted_at', { ascending: false }),
@@ -93,8 +98,10 @@ export function useAdminData() {
       supabase.from('members').select('*').order('requested_at', { ascending: false }),
       supabase.from('listing_revisions').select('*').in('status', ['pending', 'question']).order('submitted_at'),
       supabase.from('resources').select('*').order('created_at', { ascending: false }),
+      supabase.from('news_items').select('*').order('created_at', { ascending: false }),
+      supabase.from('listing_views').select('dataset_id, profile_id, day, views').gte('day', new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10)),
     ]);
-    const failed = [d, dc, p, pc, r, m, rv, rs].find((x) => x.error);
+    const failed = [d, dc, p, pc, r, m, rv, rs, nw, vw].find((x) => x.error);
     if (failed?.error) {
       setError(failed.error.message);
       return;
@@ -108,6 +115,8 @@ export function useAdminData() {
       members: m.data as Member[],
       revisions: rv.data as Revision[],
       resources: rs.data as AdminResource[],
+      news: nw.data as AdminNews[],
+      views: (vw.data ?? []) as AdminData['views'],
     });
   }, []);
 

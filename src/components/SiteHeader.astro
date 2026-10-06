@@ -13,6 +13,7 @@ const { current } = Astro.props;
 const links: { key: NavKey; href: string; label: string; locked?: boolean }[] = [
   { key: 'data', href: '/data/', label: 'Data directory' },
   { key: 'skills', href: '/skills/', label: 'Skills directory' },
+  { key: 'news', href: '/news/', label: 'News and events' },
   { key: 'resources', href: '/resources/', label: 'Resources', locked: true },
   { key: 'about', href: '/about/', label: 'About' },
   { key: 'sign-in', href: '/sign-in/', label: 'Sign in' },
@@ -22,7 +23,7 @@ const links: { key: NavKey; href: string; label: string; locked?: boolean }[] = 
 <header class="border-b border-line bg-paper">
   <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3">
     <a href={withBase('/')} class="flex items-center gap-3 rounded-sm py-1 no-underline">
-      <img src={withBase('/favicon.svg')} alt="" width="32" height="32" class="h-8 w-8 shrink-0" />
+      <img src={withBase('/logo-emblem.png')} alt="" width="44" height="44" class="h-11 w-11 shrink-0" />
       <span class="max-w-[15rem] font-serif text-[1.05rem] leading-tight font-medium text-ink sm:max-w-none sm:text-lg lg:text-[1.05rem] xl:text-lg">
         {NETWORK_NAME}
       </span>

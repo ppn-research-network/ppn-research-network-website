@@ -12,12 +12,23 @@ const noteBlock = (note) => (note ? `\n\nA note from the admin:\n\n${note}` : ''
 // Contact messages, passed on to the custodian or researcher.
 // Reply-To is set to the sender, so a reply goes straight to them.
 // ---------------------------------------------------------------------------
-export function relayEmail({ type, title, sender_name, sender_institution, sender_email, message }) {
+const TOPICS = {
+  access: 'Data access request',
+  data_question: 'Question about your data',
+  collaboration: 'Collaboration enquiry',
+  mentoring: 'Mentoring enquiry',
+  supervision: 'Supervision enquiry',
+  advice: 'Request for advice',
+  other: 'Message',
+};
+
+export function relayEmail({ type, title, sender_name, sender_institution, sender_email, message, topic }) {
   const who = `${sender_name}${sender_institution ? ` (${sender_institution})` : ''}`;
+  const what = TOPICS[topic] ?? (type === 'dataset' ? 'Enquiry' : 'Message');
   const subject = type === 'dataset'
-    ? `Enquiry about your dataset: ${oneLine(title)}`
-    : `Message from ${oneLine(sender_name)} via the ${NETWORK_NAME}`;
-  const text = `${who} has sent you a message through the ${NETWORK_NAME} website about your ${noun(type)} "${title}".
+    ? `${what} about your dataset: ${oneLine(title)}`
+    : `${what} from ${oneLine(sender_name)} via the ${NETWORK_NAME}`;
+  const text = `${who} has sent you a message through the ${NETWORK_NAME} website about your ${noun(type)} "${title}".${topic ? `\n\nWhat it's about: ${TOPICS[topic] ?? 'Other'}` : ''}
 
 ------------------------------------------------------------
 ${message}
@@ -123,6 +134,18 @@ The data and skills directories remain open to everyone at ${site('/')}.${signOf
         subject: `About the resource you shared: ${t}`,
         text: `Thank you for sharing "${d.title}". An admin reviewed it and wasn't able to add it to the members' resources.${noteBlock(d.note)}${signOff}`,
       };
+    case 'news_approved':
+      return {
+        subject: `Your post is live: ${t}`,
+        text: `Thank you for sharing "${d.title}". An admin has approved it, and it now appears in News and events${d.members_only ? ' for network members' : ''}:
+
+${site('/news/')}${noteBlock(d.note)}${signOff}`,
+      };
+    case 'news_rejected':
+      return {
+        subject: `About your post: ${t}`,
+        text: `Thank you for sharing "${d.title}". An admin reviewed it and wasn't able to publish it in News and events.${noteBlock(d.note)}${signOff}`,
+      };
     case 'annual_reminder':
       return {
         subject: `Is your ${noun(d.type)} still current? ${t}`,
@@ -154,6 +177,7 @@ export function digestEmail(counts) {
     ['Update requests', counts.updates],
     ['Membership requests', counts.members],
     ['Pending resources', counts.resources],
+    ['News and events posts', counts.news],
     ['Contact messages that failed to send', counts.failedMessages],
     ['Listings with no reply to their annual check (30+ days)', counts.overdueReviews],
   ].filter(([, n]) => n > 0);

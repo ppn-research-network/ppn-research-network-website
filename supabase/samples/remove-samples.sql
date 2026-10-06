@@ -2,6 +2,7 @@
 -- and any messages sent to them. Run with:  npm run samples:remove
 delete from public.datasets where is_sample;
 delete from public.profiles where is_sample;
+delete from public.news_items where submitted_email = 'samples@example.com';
 
 select
   (select count(*) from public.datasets where is_sample) as sample_datasets_left,

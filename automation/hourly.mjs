@@ -5,6 +5,7 @@
 //      records and files past their retention period (see the privacy notice).
 //   3. Pass on contact messages (Reply-To = the sender).
 //   4. Send emails about people's own submissions (the outbox).
+//   4b. Copy YouTube thumbnails for newly approved recordings into storage.
 //   5. Once a day: email admins a digest, only if something is waiting.
 //
 // DRY_RUN=true reads everything and reports counts, but sends and changes nothing.
@@ -49,14 +50,15 @@ async function dailyPrep(today) {
   const expired = check(await db.rpc('expired_resource_files'), 'finding expired files').map((r) => r.file_path);
   if (expired.length) check(await db.storage.from('resources').remove(expired), 'removing expired files');
   const purged = check(await db.rpc('purge_old_records'), 'purging old records');
+  const viewMonths = check(await db.rpc('roll_up_old_views'), 'merging old view counts');
   check(await db.from('job_state').upsert({ key: 'daily_prep', value: today, updated_at: new Date().toISOString() }), 'saving job state');
-  log('Daily tasks done', { reminders_queued: reminders, old_records_deleted: purged, old_files_deleted: expired.length });
+  log('Daily tasks done', { reminders_queued: reminders, old_records_deleted: purged, old_files_deleted: expired.length, view_months_merged: viewMonths });
 }
 
 // ---------------------------------------------------------------------------
 async function relayMessages() {
   const rows = check(await db.from('contact_requests')
-    .select('id, dataset_id, profile_id, sender_name, sender_email, sender_institution, message, attempts, datasets(title), profiles(full_name)')
+    .select('id, dataset_id, profile_id, sender_name, sender_email, sender_institution, message, topic, attempts, datasets(title), profiles(full_name)')
     .eq('status', 'queued').order('created_at').limit(MAX_SENDS_PER_RUN), 'reading contact messages');
 
   const datasetIds = rows.filter((r) => r.dataset_id).map((r) => r.dataset_id);
@@ -90,6 +92,7 @@ async function relayMessages() {
       sender_institution: r.sender_institution,
       sender_email: r.sender_email,
       message: r.message,
+      topic: r.topic,
     });
     try {
       await send({ to: recipient, replyTo: { name: r.sender_name, address: r.sender_email }, subject, text });
@@ -135,6 +138,37 @@ async function sendOutbox() {
 }
 
 // ---------------------------------------------------------------------------
+// YouTube thumbnails: for approved recordings with a YouTube link and no image,
+// fetch YouTube's thumbnail once and keep a copy in our private storage, so
+// members' browsers never contact YouTube.
+function youTubeId(url) {
+  const m = String(url ?? '').match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+async function youTubeThumbnails() {
+  const rows = check(await db.from('resources').select('id, url')
+    .eq('status', 'approved').eq('category', 'recording').is('thumbnail_path', null).not('url', 'is', null).limit(20), 'reading recordings');
+  const counts = { added: 0, unavailable: 0 };
+  for (const r of rows) {
+    const id = youTubeId(r.url);
+    if (!id) continue;
+    if (DRY_RUN) { counts.added++; continue; }
+    let image = null;
+    for (const size of ['maxresdefault', 'sddefault', 'hqdefault', 'mqdefault']) {
+      const res = await fetch(`https://i.ytimg.com/vi/${id}/${size}.jpg`);
+      if (res.ok) { image = Buffer.from(await res.arrayBuffer()); break; }
+    }
+    if (!image) { counts.unavailable++; continue; }
+    const path = `thumbnails/youtube/${r.id}.jpg`;
+    check(await db.storage.from('resources').upload(path, image, { contentType: 'image/jpeg', upsert: true }), 'saving a thumbnail');
+    check(await db.from('resources').update({ thumbnail_path: path }).eq('id', r.id), 'linking a thumbnail');
+    counts.added++;
+  }
+  if (rows.length) log(DRY_RUN ? 'YouTube thumbnails (dry run: would add)' : 'YouTube thumbnails', counts);
+}
+
+// ---------------------------------------------------------------------------
 async function adminDigest(today) {
   const state = check(await db.from('job_state').select('value').eq('key', 'last_digest').maybeSingle(), 'reading job state');
   if (state?.value === today) return;
@@ -152,6 +186,7 @@ async function adminDigest(today) {
     updates: await count(db.from('listing_revisions').select('id', head).eq('status', 'pending'), 'counting updates'),
     members: await count(db.from('members').select('id', head).eq('status', 'pending'), 'counting members'),
     resources: await count(db.from('resources').select('id', head).eq('status', 'pending'), 'counting resources'),
+    news: await count(db.from('news_items').select('id', head).eq('status', 'pending'), 'counting news'),
     failedMessages: await count(db.from('contact_requests').select('id', head).eq('status', 'failed'), 'counting messages'),
     overdueReviews:
       await count(db.from('datasets').select('id', head).eq('status', 'approved').lt('reminder_sent_at', monthAgo), 'counting reviews')
@@ -186,6 +221,7 @@ try {
   if (daily) await dailyPrep(date);
   await relayMessages();
   await sendOutbox();
+  await youTubeThumbnails();
   if (daily) await adminDigest(date);
   log('Finished');
 } catch (err) {

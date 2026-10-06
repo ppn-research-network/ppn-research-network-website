@@ -1,0 +1,25 @@
+---
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import NewsList from '../../components/news/NewsList.tsx';
+import { withBase } from '../../lib/url';
+---
+
+<SiteLayout title="News and events" current="news">
+  <div class="mx-auto max-w-6xl px-5 py-10 md:py-14">
+    <div class="flex flex-wrap items-end justify-between gap-6">
+      <div>
+        <h1 class="text-4xl sm:text-5xl">News and events</h1>
+        <p class="mt-4 max-w-2xl text-[#33403a] sm:text-lg">
+          New studies, conferences and events, study recruitment and opportunities shared by network members. Every post
+          is checked by an admin.
+        </p>
+      </div>
+      <a href={withBase('/news/submit/')} class="btn-secondary">Share news or an event</a>
+    </div>
+    <div class="mt-8">
+      <NewsList client:only="react">
+        <p slot="fallback" class="min-h-[90vh] text-muted">Loading news…</p>
+      </NewsList>
+    </div>
+  </div>
+</SiteLayout>

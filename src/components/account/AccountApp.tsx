@@ -25,6 +25,9 @@ interface MyListing {
   revision_note: string | null;
   admin_note: string | null;
   review_due: boolean;
+  views_30d: number;
+  views_total: number;
+  messages_total: number;
 }
 
 interface MyResource {
@@ -214,6 +217,13 @@ function ListingCard({ r, vocab, onEdit, onChanged }: { r: MyListing; vocab: Voc
         </div>
       )}
       {r.status === 'pending' && <p className="mt-3 text-sm text-muted">An admin is reviewing this listing. You can still correct it.</p>}
+      {live && (
+        <p className="mt-3 text-sm text-muted">
+          Viewed {r.views_30d} {r.views_30d === 1 ? 'time' : 'times'} in the last 30 days ({r.views_total} in total)
+          {' · '}{r.messages_total} {r.messages_total === 1 ? 'message' : 'messages'} received
+          <span className="block text-xs">Only you and the admins can see these numbers.</span>
+        </p>
+      )}
       {r.review_due && !r.revision_status && (
         <div className="mt-4 flex flex-col gap-3 rounded-lg bg-band p-4 text-sm sm:flex-row sm:items-center sm:justify-between">
           <p>Once a year we ask you to check this listing is still accurate. Is it?</p>

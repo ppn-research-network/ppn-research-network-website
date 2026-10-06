@@ -1,19 +1,35 @@
 import { useRef, useState, type SubmitEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import {
-  EMAIL_RE, ErrorSummary, Honeypot, TextArea, TextField, friendlyError, lengthError, type Errors,
+  EMAIL_RE, ErrorSummary, Honeypot, SelectField, TextArea, TextField, friendlyError, lengthError, type Errors,
 } from '../forms/Fields';
+
+// "What is this about?" choices (codes match contact_requests.topic).
+export const TOPIC_LABELS: Record<string, string> = {
+  access: 'Requesting access to the data',
+  data_question: 'A question about the data',
+  collaboration: 'Collaboration',
+  mentoring: 'Mentoring',
+  supervision: 'Supervision',
+  advice: 'Advice',
+  other: 'Something else',
+};
+const DATASET_TOPICS = ['access', 'data_question', 'collaboration', 'other'];
 
 // Message form on a dataset or profile page. Saves to contact_requests through
 // send_contact_request; the email job (Phase 5) passes it on. The recipient's
 // email address never reaches this page.
-export default function ContactForm({ targetType, targetId, recipient, messageHint }: {
+export default function ContactForm({ targetType, targetId, recipient, messageHint, openTo = [] }: {
   targetType: 'dataset' | 'profile';
   targetId: string;
   recipient: string;             // e.g. "the custodian", "Priya"
   messageHint: string;
+  openTo?: string[];             // profiles: what the person is open to
 }) {
-  const [v, setV] = useState({ name: '', email: '', institution: '', message: '', acknowledged: false, website: '' });
+  const topics = targetType === 'dataset'
+    ? DATASET_TOPICS
+    : [...['collaboration', 'mentoring', 'supervision', 'advice'].filter((t) => openTo.includes(t)), 'other'];
+  const [v, setV] = useState({ topic: '', name: '', email: '', institution: '', message: '', acknowledged: false, website: '' });
   const [errors, setErrors] = useState<Errors>({});
   const [problem, setProblem] = useState('');
   const [sending, setSending] = useState(false);
@@ -27,6 +43,7 @@ export default function ContactForm({ targetType, targetId, recipient, messageHi
     event.preventDefault();
     setProblem('');
     const e: Errors = {};
+    if (!v.topic) e.topic = 'Choose what your message is about';
     const name = lengthError(v.name, 2, 120, 'your name');
     if (name) e.name = name;
     if (!EMAIL_RE.test(v.email.trim())) e.email = 'Enter your email address, like name@example.edu.au';
@@ -51,6 +68,7 @@ export default function ContactForm({ targetType, targetId, recipient, messageHi
       p_message: v.message.trim(),
       p_acknowledged: v.acknowledged,
       p_website: v.website,
+      p_topic: v.topic,
     });
     setSending(false);
     if (error) {
@@ -74,7 +92,9 @@ export default function ContactForm({ targetType, targetId, recipient, messageHi
 
   return (
     <form noValidate onSubmit={onSubmit} className="relative mt-5 space-y-5">
-      <ErrorSummary ref={summaryRef} errors={errors} labels={{ name: 'Your name', email: 'Your email', institution: 'Institution', message: 'Message', acknowledged: 'Confirmation' }} />
+      <ErrorSummary ref={summaryRef} errors={errors} labels={{ topic: 'What is this about?', name: 'Your name', email: 'Your email', institution: 'Institution', message: 'Message', acknowledged: 'Confirmation' }} />
+      <SelectField name="topic" label="What is this about?" required placeholder="Choose one"
+        options={topics.map((t) => ({ code: t, label: TOPIC_LABELS[t] }))} value={v.topic} onChange={set('topic')} error={errors.topic} />
       <TextField name="name" label="Your name" required autoComplete="name" value={v.name} onChange={set('name')} error={errors.name} />
       <TextField name="email" label="Your email" type="email" required autoComplete="email" value={v.email} onChange={set('email')} error={errors.email} />
       <TextField name="institution" label="Institution" autoComplete="organization" value={v.institution} onChange={set('institution')} error={errors.institution} />

@@ -4,6 +4,7 @@ import { accessBadge, displayName, formatDate } from '../../lib/listings';
 import type { AdminDataset, AdminProfile, ListingStatus } from '../../lib/types';
 import { withBase } from '../../lib/url';
 import DatasetForm, { fromDataset } from '../forms/DatasetForm';
+import { TOPIC_LABELS } from '../detail/ContactForm';
 import ProfileForm, { fromProfile } from '../forms/ProfileForm';
 import { markReviewed, saveListing, setRequestStatus, setStatus, type AdminData, type ContactRequest, type Kind } from './data';
 
@@ -47,6 +48,8 @@ const STATUS_CLASS: Record<ListingStatus, string> = {
 // Published listings (and unpublished / rejected ones, to bring them back)
 // ---------------------------------------------------------------------------
 export function Published({ data, vocab, reload }: { data: AdminData; vocab: Vocab; reload: () => Promise<void> }) {
+  const views30 = (id: string) => data.views.filter((v) => v.dataset_id === id || v.profile_id === id).reduce((n, v) => n + v.views, 0);
+  const messages = (id: string) => data.requests.filter((r) => (r.dataset_id ?? r.profile_id) === id && (r.status === 'sent' || r.status === 'queued')).length;
   const [show, setShow] = useState<'approved' | 'unpublished' | 'rejected' | 'withdrawn'>('approved');
   const [type, setType] = useState<'' | Kind>('');
   const [editing, setEditing] = useState<Entry | null>(null);
@@ -128,6 +131,9 @@ export function Published({ data, vocab, reload }: { data: AdminData; vocab: Voc
                 <p className="text-sm text-muted">
                   {e.where} · Listed {formatDate(e.item.approved_at) || '—'} · Last reviewed {formatDate(e.item.last_reviewed_at) || '—'}
                 </p>
+                {e.item.status === 'approved' && (
+                  <p className="text-sm text-muted">{views30(e.item.id)} views in the last 30 days · {messages(e.item.id)} messages received</p>
+                )}
                 {e.item.review_note && <p className="mt-1 text-sm text-muted">Note: {e.item.review_note}</p>}
               </div>
               <div className="flex shrink-0 flex-wrap gap-2">
@@ -199,6 +205,7 @@ export function Requests({ data, vocab, reload }: { data: AdminData; vocab: Voca
                   </p>
                   <span className={`badge ${cls}`}>{text}</span>
                 </div>
+                {r.topic && <p className="mt-2 text-sm font-semibold text-green">{TOPIC_LABELS[r.topic] ?? r.topic}</p>}
                 <p className="mt-2 text-sm">
                   From <strong>{r.sender_name}</strong> &lt;{r.sender_email}&gt;{r.sender_institution && `, ${r.sender_institution}`}
                 </p>

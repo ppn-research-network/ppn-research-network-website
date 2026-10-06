@@ -87,6 +87,7 @@ after(async () => {
   sql(`
     delete from public.resources where shared_by_email like 'roles-test-%@example.com';
     delete from public.outbox where to_email like 'roles-test-%@example.com';
+    delete from public.news_items where submitted_email like 'roles-test-%@example.com';
     delete from public.datasets where title like '[Roles test]%';
     delete from public.members where email like 'roles-test-%@example.com';
     delete from public.admins where email like 'roles-test-%@example.com';
@@ -204,4 +205,26 @@ test('other members only see a resource once an admin approves it', async () => 
   assert.equal(afterApprove.data.length, 1, 'an approved resource is not visible to members');
   const dl = await clients.stranger.storage.from('resources').createSignedUrl(memberFile, 60);
   assert.equal(dl.error, null, dl.error?.message);
+});
+
+// ---------------------------------------------------------------------------
+// News and events
+// ---------------------------------------------------------------------------
+
+test('only members can post news; posts wait for approval; members-only posts stay hidden from non-members', async () => {
+  const item = { kind: 'event', title: `[Roles test] members workshop ${run}`, summary: 'Automated roles test post. Safe to delete.', url: 'https://example.org', starts_on: '2030-01-01', members_only: true };
+  // The owner account is never a member (the stranger becomes one in an earlier test).
+  denied((await clients.owner.rpc('submit_news', { p: { ...item, members_only: false } })).error, 'a non-member posting news');
+
+  const { data, error } = await clients.member.rpc('submit_news', { p: item });
+  assert.equal(error, null, error?.message);
+  assert.equal(data, 'pending');
+  const anon = createClient(url, key, { auth: { persistSession: false } });
+  assert.equal((await anon.from('listed_news').select('id').eq('title', item.title)).data.length, 0, 'a pending post is public');
+
+  const { data: approved } = await clients.admin.from('news_items').update({ status: 'approved' }).eq('title', item.title).select('id');
+  assert.equal(approved.length, 1);
+  assert.equal((await clients.member.from('listed_news').select('id').eq('title', item.title)).data.length, 1, 'a member cannot see a members-only post');
+  assert.equal((await anon.from('listed_news').select('id').eq('title', item.title)).data.length, 0, 'a visitor can see a members-only post');
+  assert.equal((await clients.owner.from('listed_news').select('id').eq('title', item.title)).data.length, 0, 'a signed-in non-member can see a members-only post');
 });

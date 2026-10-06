@@ -10,6 +10,7 @@ import Queue from './Queue';
 import { AnnualReview, Published, Requests, dueForReview } from './Lists';
 import Updates from './Updates';
 import { Memberships, PendingResources } from './Community';
+import NewsAdmin from './NewsAdmin';
 
 type Access = 'checking' | 'signed-out' | 'not-admin' | 'admin';
 
@@ -110,7 +111,7 @@ function SignIn() {
   );
 }
 
-type Tab = 'datasets' | 'profiles' | 'updates' | 'members' | 'resources' | 'published' | 'requests' | 'annual';
+type Tab = 'datasets' | 'profiles' | 'updates' | 'members' | 'resources' | 'news' | 'published' | 'requests' | 'annual';
 
 function Dashboard({ email }: { email: string }) {
   const { data, error, reload } = useAdminData();
@@ -139,6 +140,7 @@ function Dashboard({ email }: { email: string }) {
     updates: data.revisions.filter((r) => r.status === 'pending').length,
     members: data.members.filter((m) => m.status === 'pending').length,
     resources: data.resources.filter((r) => r.status === 'pending').length,
+    news: data.news.filter((n) => n.status === 'pending').length,
     annual: dueForReview(data, vocab).length,
   } : null;
 
@@ -148,6 +150,7 @@ function Dashboard({ email }: { email: string }) {
     { key: 'updates', label: 'Update requests', count: counts?.updates, urgent: true },
     { key: 'members', label: 'Membership requests', count: counts?.members, urgent: true },
     { key: 'resources', label: 'Pending resources', count: counts?.resources, urgent: true },
+    { key: 'news', label: 'News and events', count: counts?.news, urgent: true },
     { key: 'published', label: 'Published listings' },
     { key: 'requests', label: 'Contact requests', count: counts?.requests },
     { key: 'annual', label: 'Due for annual review', count: counts?.annual },
@@ -204,6 +207,7 @@ function Dashboard({ email }: { email: string }) {
             {tab === 'updates' && <Updates data={data} vocab={vocab} reload={reload} />}
             {tab === 'members' && <Memberships data={data} vocab={vocab} reload={reload} />}
             {tab === 'resources' && <PendingResources data={data} vocab={vocab} reload={reload} />}
+            {tab === 'news' && <NewsAdmin data={data} reload={reload} />}
             {tab === 'published' && <Published data={data} vocab={vocab} reload={reload} />}
             {tab === 'requests' && <Requests data={data} vocab={vocab} reload={reload} />}
             {tab === 'annual' && <AnnualReview data={data} vocab={vocab} reload={reload} />}

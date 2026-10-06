@@ -7,6 +7,7 @@ import { withBase } from '../../lib/url';
 import { NETWORK_NAME } from '../../../site.config.mjs';
 import { openToText, tintFor } from '../directory/SkillsDirectory';
 import ContactForm from './ContactForm';
+import { recordView } from '../../lib/views';
 
 export default function ProfileDetail() {
   const [p, setP] = useState<PublicProfile | null>(null);
@@ -22,6 +23,7 @@ export default function ProfileDetail() {
         if (!data) return setStatus('missing');
         const profile = data as PublicProfile;
         setP(profile);
+        recordView('profile', profile.id);
         document.title = `${displayName(v, profile.honorific, profile.full_name)} · ${NETWORK_NAME}`;
         setStatus('ready');
       })
@@ -130,6 +132,7 @@ export default function ProfileDetail() {
             targetId={p.id}
             recipient={firstName}
             messageHint="Say who you are and what you'd like to discuss."
+            openTo={p.open_to}
           />
           <div className="mt-6 space-y-1.5 border-t border-line pt-4 text-center text-sm">
             <a href={withBase('/account/')} className="block">Is this your profile? Sign in to update it</a>

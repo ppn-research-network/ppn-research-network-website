@@ -18,7 +18,8 @@ const pageTitle = title ? `${title} · ${NETWORK_NAME}` : NETWORK_NAME;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <link rel="icon" type="image/png" sizes="48x48" href={withBase('/favicon.png')} />
+    <link rel="apple-touch-icon" href={withBase('/apple-touch-icon.png')} />
     {SITE_STAGE !== 'live' && <meta name="robots" content="noindex, nofollow" />}
     <title>{pageTitle}</title>
     <slot name="head" />

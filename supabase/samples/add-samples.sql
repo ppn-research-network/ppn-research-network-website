@@ -161,6 +161,23 @@ with p as (
 insert into public.profile_contacts (profile_id, email)
 select id, 'sample-person+' || left(id::text, 8) || '@example.com' from p;
 
+-- Sample news and events (identified by the samples@example.com submitter).
+delete from public.news_items where submitted_email = 'samples@example.com';
+insert into public.news_items (kind, title, summary, url, organisation, scope, location, is_online, starts_on, ends_on, closes_on,
+  ethics_reference, ethics_committee, members_only, submitted_name, submitted_email, status, approved_at) values
+  ('event', 'Nutrition Society of Australia 50th Annual Scientific Meeting',
+   'The Golden Jubilee meeting, themed "Nutrition Science in Australia: 50 Years of Past Insights and Future Directions", with workshops, plenaries, symposia and oral and poster sessions.',
+   'https://www.nsaconference.au/', 'Nutrition Society of Australia', 'national', 'University of Melbourne, Parkville', false,
+   '2026-12-01', '2026-12-04', null, null, null, false, 'Sample Poster', 'samples@example.com', 'approved', now()),
+  ('event', '18th ISNN Congress: Personalised and Planetary Nutrition for Precision Health',
+   'The International Society of Nutrigenetics and Nutrigenomics congress, covering precision nutrition, multi-omics, machine learning for precision nutrition, and sustainable diets.',
+   'https://isnn2026.event.utar.edu.my/', 'International Society of Nutrigenetics and Nutrigenomics', 'international', 'Kampar, Perak, Malaysia', false,
+   '2026-11-05', '2026-11-06', null, null, null, false, 'Sample Poster', 'samples@example.com', 'approved', now()),
+  ('news', 'Find nutrition studies recruiting in Australia',
+   'The Australian Government''s clinical trials website lets you search trials that are currently recruiting, including nutrition and diet studies, using information from the Australian New Zealand Clinical Trials Registry.',
+   'https://www.australianclinicaltrials.gov.au/about/find', 'Australian Government', 'national', null, true,
+   null, null, null, null, null, false, 'Sample Poster', 'samples@example.com', 'approved', now());
+
 select
   (select count(*) from public.datasets where is_sample) as sample_datasets,
   (select count(*) from public.profiles where is_sample) as sample_profiles;

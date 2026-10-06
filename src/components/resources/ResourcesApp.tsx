@@ -6,6 +6,7 @@ import { formatDate } from '../../lib/listings';
 import { withBase } from '../../lib/url';
 import { CONTACT_EMAIL, REVIEW_TIME } from '../../../site.config.mjs';
 import { matchesSearch } from '../directory/common';
+import { makeThumbnail, THUMB_TYPES } from '../../lib/images';
 import {
   ErrorSummary, SelectField, TextArea, TextField, friendlyError, lengthError, urlError, type Errors,
 } from '../forms/Fields';
@@ -22,6 +23,7 @@ interface Resource {
   file_type: 'pdf' | 'docx' | 'xlsx' | null;
   description: string | null;
   licence: string | null;
+  thumbnail_path: string | null;
   presenter: string | null;
   event_date: string | null;
   duration: string | null;
@@ -111,11 +113,21 @@ function Library() {
   const [q, setQ] = useState('');
   const [category, setCategory] = useState('');
   const [sharing, setSharing] = useState(() => new URLSearchParams(window.location.search).get('share') === '1');
+  const [thumbs, setThumbs] = useState<Record<string, string>>({});
   const [thanks, setThanks] = useState(false);
 
   useEffect(() => {
     supabase.from('resources').select('*').eq('status', 'approved').order('created_at', { ascending: false })
-      .then(({ data }) => setRows((data as Resource[]) ?? []));
+      .then(async ({ data }) => {
+        const list = (data as Resource[]) ?? [];
+        setRows(list);
+        // Thumbnails are private files too: short-lived links, fetched in one go.
+        const paths = list.map((r) => r.thumbnail_path).filter((p): p is string => !!p);
+        if (paths.length) {
+          const { data: signed } = await supabase.storage.from('resources').createSignedUrls(paths, 3600);
+          setThumbs(Object.fromEntries((signed ?? []).filter((s) => s.signedUrl).map((s) => [s.path, s.signedUrl])));
+        }
+      });
   }, []);
 
   const shown = useMemo(() => (rows ?? []).filter((r) =>
@@ -187,8 +199,11 @@ function Library() {
           <ul className="mt-5 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {recordings.map((r, i) => (
               <li key={r.id} className="card relative overflow-hidden hover:border-green">
-                <div className={`relative flex aspect-video items-center justify-center ${TINTS[i % TINTS.length]}`} aria-hidden="true">
-                  <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white text-ink shadow">
+                <div className={`relative flex aspect-video items-center justify-center overflow-hidden ${TINTS[i % TINTS.length]}`} aria-hidden="true">
+                  {r.thumbnail_path && thumbs[r.thumbnail_path] && (
+                    <img src={thumbs[r.thumbnail_path]} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+                  )}
+                  <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-white/90 text-ink shadow">
                     <svg className="ml-1 h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z" /></svg>
                   </span>
                   {r.duration && <span className="absolute right-3 bottom-3 rounded bg-black/70 px-2 py-0.5 text-xs font-semibold text-white">{r.duration}</span>}
@@ -295,6 +310,7 @@ const MAX_BYTES = 10 * 1024 * 1024;
 function ShareForm({ vocab, onCancel, onDone }: { vocab: Vocab; onCancel: () => void; onDone: () => void }) {
   const [v, setV] = useState({ title: '', category: '', how: 'file' as 'file' | 'link', url: '', description: '', licence: '', presenter: '', event_date: '', duration: '', confirms: false });
   const [file, setFile] = useState<File | null>(null);
+  const [thumb, setThumb] = useState<File | null>(null);
   const [errors, setErrors] = useState<Errors>({});
   const [problem, setProblem] = useState('');
   const [busy, setBusy] = useState(false);
@@ -322,6 +338,7 @@ function ShareForm({ vocab, onCancel, onDone }: { vocab: Vocab; onCancel: () => 
     }
     add('description', lengthError(v.description, 0, 600, ''));
     add('licence', lengthError(v.licence, 0, 300, ''));
+    if (thumb && !THUMB_TYPES.includes(thumb.type)) e.thumbnail = 'Choose a JPG, PNG or WebP image';
     if (!v.confirms) e.confirms = 'Tick the box to confirm you may share this';
     setErrors(e);
     if (Object.keys(e).length) {
@@ -330,9 +347,21 @@ function ShareForm({ vocab, onCancel, onDone }: { vocab: Vocab; onCancel: () => 
     }
 
     setBusy(true);
+    const { data: userData } = await supabase.auth.getUser();
+    let thumbnail_path: string | null = null;
+    if (isRecording && thumb) {
+      try {
+        const blob = await makeThumbnail(thumb);
+        thumbnail_path = `uploads/${userData.user?.id}/${Date.now()}-thumbnail.jpg`;
+        const up = await supabase.storage.from('resources').upload(thumbnail_path, blob, { contentType: 'image/jpeg' });
+        if (up.error) throw up.error;
+      } catch {
+        setBusy(false);
+        return setProblem('The image could not be uploaded. Try a different JPG or PNG, or leave it out: an admin can add one later.');
+      }
+    }
     let file_path: string | null = null;
     if (how === 'file' && file) {
-      const { data: userData } = await supabase.auth.getUser();
       const safe = file.name.toLowerCase().replace(/[^a-z0-9.]+/g, '-').slice(-80);
       file_path = `uploads/${userData.user?.id}/${Date.now()}-${safe}`;
       const up = await supabase.storage.from('resources').upload(file_path, file, { contentType: file.type });
@@ -345,7 +374,7 @@ function ShareForm({ vocab, onCancel, onDone }: { vocab: Vocab; onCancel: () => 
       p: {
         title: v.title, category: v.category,
         url: how === 'link' ? v.url.trim() : null,
-        file_path, file_type: file ? FILE_TYPES[file.type] : null, file_size: file?.size ?? null,
+        file_path, file_type: file ? FILE_TYPES[file.type] : null, file_size: file?.size ?? null, thumbnail_path,
         description: v.description, licence: v.licence, presenter: isRecording ? v.presenter : null,
         event_date: isRecording && v.event_date ? v.event_date : null, duration: isRecording ? v.duration : null,
         confirms_rights: v.confirms,
@@ -362,7 +391,7 @@ function ShareForm({ vocab, onCancel, onDone }: { vocab: Vocab; onCancel: () => 
       <h1 className="mt-3 text-3xl">Share a resource</h1>
       <p className="mt-2 text-sm text-muted">An admin checks every resource before other members see it. It stays your work, credited to you.</p>
       <form noValidate onSubmit={onSubmit} className="relative mt-8 space-y-6">
-        <ErrorSummary ref={summaryRef} errors={errors} labels={{ title: 'Title', category: 'Type', url: 'Web address', file: 'File', description: 'Description', licence: 'Licence or conditions', confirms: 'Permission' }} />
+        <ErrorSummary ref={summaryRef} errors={errors} labels={{ title: 'Title', category: 'Type', url: 'Web address', file: 'File', thumbnail: 'Thumbnail image', description: 'Description', licence: 'Licence or conditions', confirms: 'Permission' }} />
         <TextField name="title" label="Title" required value={v.title} onChange={set('title')} error={errors.title} maxLength={200} />
         <SelectField name="category" label="Type" required options={activeTerms(vocab, 'resource_category')} value={v.category} onChange={set('category')} error={errors.category} />
 
@@ -378,7 +407,7 @@ function ShareForm({ vocab, onCancel, onDone }: { vocab: Vocab; onCancel: () => 
 
         {how === 'link' ? (
           <TextField name="url" label={isRecording ? 'Link to the recording' : 'Web address'} type="url" required placeholder="https://"
-            hint={isRecording ? 'An unlisted YouTube or Vimeo link, or your institution’s video platform. Anyone with the link can watch, so use a platform that checks sign-in for sensitive recordings.' : undefined}
+            hint={isRecording ? 'An unlisted YouTube or Vimeo link, or your institution’s video platform. Anyone with the link can watch, so use a platform that checks sign-in for sensitive recordings. Zoom cloud recordings are often deleted automatically after a few months; for long-term access, upload the recording to YouTube (unlisted), Vimeo or your institution’s video platform.' : undefined}
             value={v.url} onChange={set('url')} error={errors.url} />
         ) : (
           <div>
@@ -388,6 +417,20 @@ function ShareForm({ vocab, onCancel, onDone }: { vocab: Vocab; onCancel: () => 
               aria-describedby={`f-file-hint${errors.file ? ' f-file-error' : ''}`} aria-invalid={errors.file ? true : undefined}
               onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
             {errors.file && <span id="f-file-error" className="field-error">{errors.file}</span>}
+          </div>
+        )}
+
+        {isRecording && (
+          <div>
+            <label htmlFor="f-thumbnail" className="field-label">Thumbnail image <span className="font-normal text-muted">(optional)</span></label>
+            <span id="f-thumbnail-hint" className="field-hint">
+              YouTube links get their thumbnail automatically. For other platforms, add a JPG or PNG, such as the title slide.
+              Don’t use an image showing participants, or anyone who hasn’t agreed to it.
+            </span>
+            <input id="f-thumbnail" type="file" accept=".jpg,.jpeg,.png,.webp" className="input !py-2"
+              aria-describedby={`f-thumbnail-hint${errors.thumbnail ? ' f-thumbnail-error' : ''}`} aria-invalid={errors.thumbnail ? true : undefined}
+              onChange={(e) => setThumb(e.target.files?.[0] ?? null)} />
+            {errors.thumbnail && <span id="f-thumbnail-error" className="field-error">{errors.thumbnail}</span>}
           </div>
         )}
 
