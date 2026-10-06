@@ -23,6 +23,7 @@ const DATASET_FIELDS: [string, string, Format][] = [
   ['study_design', 'Study design', one('study_design')], ['years_collected', 'Years collected', text],
   ['sample_size', 'Sample size', text], ['age_range', 'Age range', text], ['population', 'Population', text],
   ['lead_institution', 'Lead institution', text], ['state', 'State', (v) => stateName(String(v))],
+  ['life_stages', 'Life stage', list('life_stage')], ['health_statuses', 'Health status', list('health_status')],
   ['data_types', 'Data types', list('data_type')], ['data_types_other', 'Other data types', text],
   ['biospecimens', 'Biospecimens', (v) => (v ? 'Yes' : 'No')], ['biospecimens_details', 'Biospecimen details', text],
   ['access_levels', 'Access level', access], ['access_requirements', 'Requirements', list('access_requirement')],
@@ -36,6 +37,7 @@ const PROFILE_FIELDS: [string, string, Format][] = [
   ['state', 'State', (v) => stateName(String(v))], ['discipline', 'Discipline', one('discipline')],
   ['skills', 'Skills', list()], ['bio', 'Bio', text], ['orcid', 'ORCID', text], ['profile_url', 'Profile link', text],
   ['looking_for', 'Looking for', list('looking_for')], ['open_to', 'Open to', list('open_to')],
+  ['life_stages', 'Works with: life stage', list('life_stage')], ['health_statuses', 'Works with: health status', list('health_status')],
 ];
 
 // Compare values ignoring blank-vs-null and list order.

@@ -24,6 +24,8 @@ const blank = {
   population: '',
   lead_institution: '',
   state: '',
+  life_stages: [] as string[],
+  health_statuses: [] as string[],
   data_types: [] as string[],
   data_types_other: '',
   biospecimens: '',
@@ -58,6 +60,8 @@ const LABELS: Record<string, string> = {
   population: 'Population or health status',
   lead_institution: 'Lead institution',
   state: 'State or territory',
+  life_stages: 'Life stage',
+  health_statuses: 'Health status',
   data_types: 'Data available',
   data_types_other: 'Other data types',
   biospecimens: 'Biospecimens',
@@ -98,6 +102,8 @@ export function toListing(v: DatasetValues) {
     population: orNull(v.population),
     lead_institution: v.lead_institution.trim(),
     state: v.state,
+    life_stages: v.life_stages,
+    health_statuses: v.health_statuses,
     data_types: v.data_types,
     data_types_other: v.data_types.includes('other') ? orNull(v.data_types_other) : null,
     biospecimens: v.biospecimens === 'yes',
@@ -128,6 +134,8 @@ export function fromDataset(d: AdminDataset, email: string): DatasetValues {
     population: d.population ?? '',
     lead_institution: d.lead_institution,
     state: d.state,
+    life_stages: d.life_stages ?? [],
+    health_statuses: d.health_statuses ?? [],
     data_types: d.data_types,
     data_types_other: d.data_types_other ?? '',
     biospecimens: d.biospecimens ? 'yes' : 'no',
@@ -163,6 +171,8 @@ function validate(v: DatasetValues, needsConsent: boolean, needsEthics = false, 
   set('population', lengthError(v.population, 0, 300, ''));
   set('lead_institution', lengthError(v.lead_institution, 2, 200, 'the lead institution'));
   if (!v.state) e.state = 'Choose a state or territory';
+  if (v.life_stages.length === 0) e.life_stages = 'Tick at least one life stage';
+  if (v.health_statuses.length === 0) e.health_statuses = 'Tick at least one health status';
 
   if (v.data_types.length === 0) e.data_types = 'Tick at least one type of data';
   if (v.data_types.includes('other')) set('data_types_other', lengthError(v.data_types_other, 2, 200, 'the other data types'));
@@ -288,6 +298,18 @@ export default function DatasetForm({ mode = 'submit', initial = blank, liveLeve
           <TextField name="lead_institution" label="Lead institution" required autoComplete="organization" value={v.lead_institution} onChange={set('lead_institution')} error={err('lead_institution')} />
           <SelectField name="state" label="State or territory" required options={[...STATES]} value={v.state} onChange={set('state')} error={err('state')} />
         </div>
+        <CheckboxGroup
+          name="life_stages" legend="Life stage of participants" required columns={3}
+          hint="Tick everything that applies."
+          options={activeTerms(vocab, 'life_stage')}
+          values={v.life_stages} onChange={set('life_stages')} error={err('life_stages')}
+        />
+        <CheckboxGroup
+          name="health_statuses" legend="Health status of participants" required
+          hint="Tick everything that applies. Add detail in “Population or health status” above."
+          options={activeTerms(vocab, 'health_status')}
+          values={v.health_statuses} onChange={set('health_statuses')} error={err('health_statuses')}
+        />
       </Section>
 
       <Section step={3} total={TOTAL} title="What data are available?">

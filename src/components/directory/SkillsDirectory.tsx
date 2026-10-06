@@ -40,6 +40,8 @@ export default function SkillsDirectory() {
     where: '',
     open: '',
     stage: '',
+    life: '',
+    health: '',
   });
 
   useEffect(() => {
@@ -59,12 +61,16 @@ export default function SkillsDirectory() {
       if (state.where && p.state !== state.where) return false;
       if (state.open && !p.open_to.includes(state.open)) return false;
       if (state.stage && p.career_stage !== state.stage) return false;
+      if (state.life && !(p.life_stages ?? []).includes(state.life)) return false;
+      if (state.health && !(p.health_statuses ?? []).includes(state.health)) return false;
       return matchesSearch(state.q, [
         displayName(vocab, p.honorific, p.full_name), p.role, p.institution, p.state, stateName(p.state), p.bio,
         p.skills.join(' '),
         labelFor(vocab, 'discipline', p.discipline),
         labelFor(vocab, 'career_stage', p.career_stage),
         p.looking_for.map((c) => labelFor(vocab, 'looking_for', c)).join(' '),
+        (p.life_stages ?? []).map((c) => labelFor(vocab, 'life_stage', c)).join(' '),
+        (p.health_statuses ?? []).map((c) => labelFor(vocab, 'health_status', c)).join(' '),
       ]);
     });
   }, [rows, vocab, state]);
@@ -103,18 +109,22 @@ export default function SkillsDirectory() {
         </nav>
       )}
 
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-6 flex flex-col gap-4">
         <p id="results" tabIndex={-1} className="text-sm text-muted" role="status" aria-live="polite">
           {rows && vocab && <><strong className="text-ink">{results.length}</strong> {results.length === 1 ? 'person' : 'people'}</>}
         </p>
         {vocab && (
-          <div className="grid grid-cols-3 gap-2 text-sm text-muted sm:flex sm:items-center sm:gap-4">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm text-muted sm:grid-cols-3 lg:grid-cols-5">
             <SmallSelect label="State" value={state.where} onChange={(where) => update({ where })}
               options={[{ code: '', label: 'All' }, ...STATES.map((s) => ({ code: s.code, label: s.code }))]} />
             <SmallSelect label="Open to" value={state.open} onChange={(open) => update({ open })}
               options={[{ code: '', label: 'Anything' }, ...activeTerms(vocab, 'open_to')]} />
             <SmallSelect label="Career stage" value={state.stage} onChange={(stage) => update({ stage })}
               options={[{ code: '', label: 'Any' }, ...activeTerms(vocab, 'career_stage')]} />
+            <SmallSelect label="Works with" value={state.life} onChange={(life) => update({ life })}
+              options={[{ code: '', label: 'Any life stage' }, ...activeTerms(vocab, 'life_stage')]} />
+            <SmallSelect label="Health status" value={state.health} onChange={(health) => update({ health })}
+              options={[{ code: '', label: 'Any' }, ...activeTerms(vocab, 'health_status')]} />
           </div>
         )}
       </div>
@@ -153,9 +163,9 @@ function SmallSelect({ label, value, onChange, options }: {
   options: { code: string; label: string }[];
 }) {
   return (
-    <label className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
-      <span className="text-xs sm:text-sm">{label}</span>
-      <select className="input !mt-0 !min-h-10 !py-1 text-sm sm:!min-h-8 sm:w-auto" value={value} onChange={(e) => onChange(e.target.value)}>
+    <label className="flex flex-col gap-1">
+      <span className="text-xs font-semibold">{label}</span>
+      <select className="input !mt-0 !min-h-10 !py-1 text-sm" value={value} onChange={(e) => onChange(e.target.value)}>
         {options.map((o) => <option key={o.code} value={o.code}>{o.label}</option>)}
       </select>
     </label>

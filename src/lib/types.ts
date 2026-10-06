@@ -19,6 +19,8 @@ export interface PublicDataset {
   biospecimens: boolean;
   biospecimens_details: string | null;
   access_levels: string[];
+  life_stages: string[];
+  health_statuses: string[];
   access_requirements: string[];
   access_notes: string | null;
   consent_secondary_use: string;
@@ -48,6 +50,8 @@ export interface PublicProfile {
   profile_url: string | null;
   looking_for: string[];
   open_to: string[];
+  life_stages: string[];
+  health_statuses: string[];
   listed_at: string | null;
   last_reviewed_at: string | null;
 }

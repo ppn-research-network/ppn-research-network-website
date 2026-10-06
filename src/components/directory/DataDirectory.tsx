@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
-import { filterOptions, labelFor, loadVocab, type FilterOption, type Vocab } from '../../lib/vocab';
+import { activeTerms, filterOptions, labelFor, loadVocab, type FilterOption, type Vocab } from '../../lib/vocab';
 import { ACCESS_LEVELS, STATES, accessBadge, formatNumber, stateName } from '../../lib/listings';
 import type { PublicDataset } from '../../lib/types';
 import { withBase } from '../../lib/url';
@@ -23,6 +23,8 @@ export default function DataDirectory() {
     bio: false as boolean,    // biospecimens available
     access: [] as string[],
     design: [] as string[],   // study design filter keys
+    life: [] as string[],     // life stage codes
+    health: [] as string[],   // health status codes
     where: '',                // state or territory
     sort: 'recent' as Sort,
   });
@@ -53,11 +55,15 @@ export default function DataDirectory() {
       if (state.access.length && !d.access_levels.some((a) => state.access.includes(a))) return false;
       if (designCodes.length && !designCodes.includes(d.study_design)) return false;
       if (state.where && d.state !== state.where) return false;
+      if (state.life.length && !(d.life_stages ?? []).some((c) => state.life.includes(c))) return false;
+      if (state.health.length && !(d.health_statuses ?? []).some((c) => state.health.includes(c))) return false;
       return matchesSearch(state.q, [
         d.title, d.summary, d.keywords.join(' '), d.lead_institution, d.state, stateName(d.state),
         d.population, d.age_range, d.data_types_other, d.biospecimens_details, d.contact_name, d.contact_role,
         d.data_types.map((t) => labelFor(vocab, 'data_type', t)).join(' '),
         labelFor(vocab, 'study_design', d.study_design),
+        (d.life_stages ?? []).map((c) => labelFor(vocab, 'life_stage', c)).join(' '),
+        (d.health_statuses ?? []).map((c) => labelFor(vocab, 'health_status', c)).join(' '),
         d.access_levels.map((a) => ACCESS_LEVELS.find((l) => l.code === a)?.badge).join(' '),
       ]);
     });
@@ -71,10 +77,10 @@ export default function DataDirectory() {
 
   useEffect(() => setShown(PAGE), [state]);
 
-  const toggleIn = (key: 'type' | 'access' | 'design', value: string, on: boolean) =>
+  const toggleIn = (key: 'type' | 'access' | 'design' | 'life' | 'health', value: string, on: boolean) =>
     update({ [key]: on ? [...state[key], value] : state[key].filter((x) => x !== value) });
 
-  const filterCount = state.type.length + state.access.length + state.design.length + (state.bio ? 1 : 0) + (state.where ? 1 : 0);
+  const filterCount = state.type.length + state.access.length + state.design.length + state.life.length + state.health.length + (state.bio ? 1 : 0) + (state.where ? 1 : 0);
 
   return (
     <>
@@ -115,6 +121,22 @@ export default function DataDirectory() {
                     <Checkbox key={o.key} label={o.label} checked={state.type.includes(o.key)} onChange={(on) => toggleIn('type', o.key, on)} />
                   ))}
                   <Checkbox label="Biospecimens available" checked={state.bio} onChange={(bio) => update({ bio })} />
+                </div>
+              </fieldset>
+              <fieldset>
+                <FilterHeading>Life stage</FilterHeading>
+                <div className="space-y-2.5">
+                  {activeTerms(vocab, 'life_stage').map((t) => (
+                    <Checkbox key={t.code} label={t.label} checked={state.life.includes(t.code)} onChange={(on) => toggleIn('life', t.code, on)} />
+                  ))}
+                </div>
+              </fieldset>
+              <fieldset>
+                <FilterHeading>Health status</FilterHeading>
+                <div className="space-y-2.5">
+                  {activeTerms(vocab, 'health_status').map((t) => (
+                    <Checkbox key={t.code} label={t.label} checked={state.health.includes(t.code)} onChange={(on) => toggleIn('health', t.code, on)} />
+                  ))}
                 </div>
               </fieldset>
               <fieldset>

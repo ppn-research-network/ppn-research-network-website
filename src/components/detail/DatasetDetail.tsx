@@ -82,6 +82,8 @@ export default function DatasetDetail() {
               <Row label="Study design">{labelFor(vocab, 'study_design', d.study_design)}</Row>
               {d.years_collected && <Row label="Years collected">{d.years_collected}</Row>}
               {d.sample_size != null && <Row label="Sample size">{formatNumber(d.sample_size)} participants</Row>}
+              {(d.life_stages ?? []).length > 0 && <Row label="Life stage">{d.life_stages.map((c) => labelFor(vocab, 'life_stage', c)).join(', ')}</Row>}
+              {(d.health_statuses ?? []).length > 0 && <Row label="Health status">{d.health_statuses.map((c) => labelFor(vocab, 'health_status', c)).join(', ')}</Row>}
               {d.population && <Row label="Population">{d.population}</Row>}
               {d.age_range && <Row label="Age range">{d.age_range}</Row>}
               <Row label="Data types">

@@ -56,6 +56,8 @@ function validDataset(title) {
     access_levels: ['controlled'],
     access_requirements: ['ethics'],
     consent_secondary_use: 'unsure',
+    life_stages: ['adults'],
+    health_statuses: ['other'],
     contact_name: 'Test Person',
     contact_role: 'Tester',
     consent_to_list: true,
@@ -95,7 +97,7 @@ for (const view of ['public_datasets', 'public_profiles']) {
     assert.equal(error, null, error?.message);
     for (const row of data) {
       for (const [column, value] of Object.entries(row)) {
-        assert.doesNotMatch(column, /email|status|review_note|approved_by|reviewed_by|consent_to_list|is_sample/i,
+        assert.doesNotMatch(column, /email|^status$|review_note|approved_by|reviewed_by|consent_to_list|is_sample/i,
           `${view} exposes column ${column}`);
         assert.doesNotMatch(JSON.stringify(value ?? ''), EMAIL_PATTERN,
           `${view} row ${row.id} has an email-like value in ${column}`);

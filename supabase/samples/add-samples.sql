@@ -161,6 +161,32 @@ with p as (
 insert into public.profile_contacts (profile_id, email)
 select id, 'sample-person+' || left(id::text, 8) || '@example.com' from p;
 
+-- Populations for the samples.
+update public.datasets set life_stages = v.life, health_statuses = v.health
+from (values
+  ('Mediterranean diet feeding trial: plasma metabolome and gut microbiome', '{adults}'::text[], '{overweight_obesity}'::text[]),
+  ('Continuous glucose monitoring in adults with prediabetes', '{adults,older_adults}', '{prediabetes_t2d}'),
+  ('Adolescent dietary patterns survey', '{adolescents}', '{generally_healthy}'),
+  ('Plasma lipidomics after a dairy challenge meal', '{adults}', '{generally_healthy}'),
+  ('Older adults nutrition and frailty cohort', '{older_adults}', '{generally_healthy,cardiovascular}'),
+  ('Infant feeding and faecal microbiome pilot', '{infants}', '{generally_healthy}'),
+  ('Continuous glucose monitoring in pregnancy', '{pregnancy_lactation}', '{gestational_diabetes}'),
+  ('Sodium intake and blood pressure in older adults', '{older_adults}', '{cardiovascular}'),
+  ('Faecal short-chain fatty acids after fibre supplementation', '{adults}', '{generally_healthy}')
+) as v(title, life, health)
+where datasets.is_sample and datasets.title = v.title;
+
+update public.profiles set life_stages = v.life, health_statuses = v.health
+from (values
+  ('Priya Nair', '{adults}'::text[], '{prediabetes_t2d,overweight_obesity}'::text[]),
+  ('Sam Whitfield', '{adults}', '{prediabetes_t2d,type1_diabetes}'),
+  ('Helen Carter', '{adults,older_adults}', '{generally_healthy,cardiovascular}'),
+  ('Tom Okafor', '{older_adults}', '{}'),
+  ('Lena Fischer', '{infants,adults}', '{gastrointestinal}'),
+  ('Mei Chen', '{pregnancy_lactation}', '{gestational_diabetes}')
+) as v(name, life, health)
+where profiles.is_sample and profiles.full_name = v.name;
+
 -- Sample news and events (identified by the samples@example.com submitter).
 delete from public.news_items where submitted_email = 'samples@example.com';
 insert into public.news_items (kind, title, summary, url, organisation, scope, location, is_online, starts_on, ends_on, closes_on,

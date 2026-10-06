@@ -214,6 +214,8 @@ function DatasetSummary({ d, email, vocab }: { d: AdminDataset; email: string; v
         {d.access_notes && <Row label="Access details">{d.access_notes}</Row>}
         <Row label="Data types">{d.data_types.map((t) => labelFor(vocab, 'data_type', t)).join(', ')}{d.data_types_other && ` (${d.data_types_other})`}</Row>
         <Row label="Biospecimens">{d.biospecimens ? `Yes${d.biospecimens_details ? `: ${d.biospecimens_details}` : ''}` : 'No'}</Row>
+        <Row label="Life stage">{(d.life_stages ?? []).map((c) => labelFor(vocab, 'life_stage', c)).join(', ') || '—'}</Row>
+        <Row label="Health status">{(d.health_statuses ?? []).map((c) => labelFor(vocab, 'health_status', c)).join(', ') || '—'}</Row>
         {d.population && <Row label="Population">{d.population}{d.age_range && `, ${d.age_range}`}</Row>}
         {d.keywords.length > 0 && <Row label="Keywords">{d.keywords.join(', ')}</Row>}
         {d.repository_url && <Row label="Repository"><a href={d.repository_url} target="_blank" rel="noopener noreferrer" className="break-all">{d.repository_url}</a></Row>}
@@ -238,6 +240,9 @@ function ProfileSummary({ p, email, vocab }: { p: AdminProfile; email: string; v
         {p.skills.length > 0 && <Row label="Skills">{p.skills.join(', ')}</Row>}
         {p.looking_for.length > 0 && <Row label="Looking for">{p.looking_for.map((c) => labelFor(vocab, 'looking_for', c)).join(', ')}</Row>}
         {p.open_to.length > 0 && <Row label="Open to">{p.open_to.map((c) => labelFor(vocab, 'open_to', c)).join(', ')}</Row>}
+        {[...(p.life_stages ?? []), ...(p.health_statuses ?? [])].length > 0 && (
+          <Row label="Works with">{[...(p.life_stages ?? []).map((c) => labelFor(vocab, 'life_stage', c)), ...(p.health_statuses ?? []).map((c) => labelFor(vocab, 'health_status', c))].join(', ')}</Row>
+        )}
         {p.orcid && <Row label="ORCID"><a href={`https://orcid.org/${p.orcid}`} target="_blank" rel="noopener noreferrer">{p.orcid}</a></Row>}
         {p.profile_url && <Row label="Profile link"><a href={p.profile_url} target="_blank" rel="noopener noreferrer" className="break-all">{p.profile_url}</a></Row>}
         <Row label="Submitted">{formatDate(p.submitted_at)}</Row>

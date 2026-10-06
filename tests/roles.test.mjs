@@ -73,7 +73,7 @@ before(async () => {
     p_listing: {
       title: `[Roles test] dataset ${run}`, summary: 'Automated roles test listing. Safe to delete.', study_design: 'cohort',
       lead_institution: 'Test institution', state: 'NSW', data_types: ['dietary_intake'], biospecimens: false,
-      access_levels: ['controlled'], consent_secondary_use: 'partly', contact_name: 'Test Owner', contact_role: 'Tester', consent_to_list: true,
+      access_levels: ['controlled'], consent_secondary_use: 'partly', life_stages: ['adults'], health_statuses: ['other'], contact_name: 'Test Owner', contact_role: 'Tester', consent_to_list: true,
     },
     p_email: people.owner,
   });

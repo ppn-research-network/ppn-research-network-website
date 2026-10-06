@@ -14,7 +14,9 @@ export type VocabList =
   | 'open_to'
   | 'honorific'
   | 'member_role'
-  | 'resource_category';
+  | 'resource_category'
+  | 'life_stage'
+  | 'health_status';
 
 export interface VocabTerm {
   list: VocabList;
@@ -38,6 +40,8 @@ const EMPTY: Vocab = {
   honorific: [],
   member_role: [],
   resource_category: [],
+  life_stage: [],
+  health_status: [],
 };
 
 export async function loadVocab(): Promise<Vocab> {

@@ -27,6 +27,8 @@ const blank = {
   profile_url: '',
   looking_for: [] as string[],
   open_to: [] as string[],
+  life_stages: [] as string[],
+  health_statuses: [] as string[],
   email: '',
   consent_to_list: false,
   website: '',
@@ -72,6 +74,8 @@ export function toListing(v: ProfileValues) {
     profile_url: orNull(v.profile_url),
     looking_for: v.looking_for,
     open_to: v.open_to,
+    life_stages: v.life_stages,
+    health_statuses: v.health_statuses,
   };
 }
 
@@ -91,6 +95,8 @@ export function fromProfile(p: AdminProfile, email: string): ProfileValues {
     profile_url: p.profile_url ?? '',
     looking_for: p.looking_for,
     open_to: p.open_to,
+    life_stages: p.life_stages ?? [],
+    health_statuses: p.health_statuses ?? [],
     email,
     consent_to_list: true,
   };
@@ -233,6 +239,17 @@ export default function ProfileForm({ mode = 'submit', initial = blank, submitLa
           name="open_to" legend="I'm open to"
           options={activeTerms(vocab, 'open_to')}
           values={v.open_to} onChange={set('open_to')}
+        />
+        <CheckboxGroup
+          name="life_stages" legend="Populations I work with: life stage" columns={3}
+          hint="Leave blank if your work isn’t specific to a population."
+          options={activeTerms(vocab, 'life_stage')}
+          values={v.life_stages} onChange={set('life_stages')}
+        />
+        <CheckboxGroup
+          name="health_statuses" legend="Populations I work with: health status"
+          options={activeTerms(vocab, 'health_status')}
+          values={v.health_statuses} onChange={set('health_statuses')}
         />
       </Section>
 

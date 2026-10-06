@@ -83,6 +83,16 @@ export default function ProfileDetail() {
             </section>
           )}
 
+          {((p.life_stages ?? []).length > 0 || (p.health_statuses ?? []).length > 0) && (
+            <section aria-labelledby="populations">
+              <h2 id="populations" className="text-2xl">Populations I work with</h2>
+              <ul className="mt-3 flex flex-wrap gap-2">
+                {[...(p.life_stages ?? []).map((c) => labelFor(vocab, 'life_stage', c)), ...(p.health_statuses ?? []).map((c) => labelFor(vocab, 'health_status', c))]
+                  .map((t) => <li key={t} className="tag !text-sm">{t}</li>)}
+              </ul>
+            </section>
+          )}
+
           {(p.looking_for.length > 0 || p.open_to.length > 0) && (
             <section aria-labelledby="connect">
               <h2 id="connect" className="text-2xl">Looking to connect</h2>
